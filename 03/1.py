@@ -11,9 +11,11 @@ def main():
 
 	lines=inp.splitlines()
 
+
 	matrix=[list(line) for line in lines]
 
-	arr=np.array(matrix,dtype=str)
+	arr_str=np.array(matrix,dtype=str)
+	arr=arr_str.copy()
 	for s in "0123456789":
 		arr[arr==s]=1
 	dot_mask=arr=="."
@@ -23,40 +25,50 @@ def main():
 	empties=arr==0
 	numbers=arr==1
 	symbols=arr==2
-	# arr=arr.view('S1').reshape((arr.size, -1))
-	# lines=["".join(arr[i,:]) for i in range(arr.shape[0])]
-	# print("\n".join(lines))
-	# print(arr[1,:])
-	# print(arr)
-	# numbers1=np.zeros(numbers.shape+np.array([2,2]))
-	print(numbers.shape)
-	# print(numbers1.shape)
-	# numbers1[1:-1,1:-1]=numbers
 
-	kernel=[
-		[1,1,1],
-		[1,1,1],
-		[1,1,1],
-	]
-	# kernel=[
-	# 	[0,1,0],
-	# 	[1,0,1],
-	# 	[0,1,0],
-	# ]
-	kernel=np.array(kernel)
-	# convolved=scipy.signal.convolve2d(numbers1,kernel)
-	convolved=scipy.signal.convolve2d(numbers,kernel,mode="same")
+
+	convolved=convolve(symbols,1,1,1)
 	convolved[convolved>0]=1
-	convolved=convolved-numbers
-	_,axs=plt.subplots(1,2)
+	convolved=convolved-symbols
+	convolved=convolved&numbers
 
-	axs[0].imshow(numbers)
-	# plt.show()
-	axs[1].imshow(convolved)
-	plt.show()
+	convolved=convolve(convolved,1,1,1)
+	convolved[convolved>0]=1
+	convolved=convolved&numbers
 
+	convolved=convolve(convolved,1,1,1)
+	convolved[convolved>0]=1
+	convolved=convolved&numbers
 
+	rows,cols=np.nonzero(convolved)
+	chars=arr_str[rows,cols]
 
+	result=0
+	num=str(chars[0])
+
+	for i in range(1,chars.shape[0]):
+		ch=chars[i]
+		row=rows[i]
+		col=cols[i]
+		print(ch)
+		if row==rows[i-1] and col==cols[i-1]+1:
+			print(f" {num}+{ch}")
+			num+=str(ch)
+		else:
+			print(f" ! add {num}")
+			result+=int(num)
+			num=str(ch)
+			print(f" +{ch}")
+
+	print(f" ! add {num}")
+	result+=int(num)
+
+	print(result)
+
+def convolve(arr,a,b,c):
+	print("  [CONVOLVE]")
+	kernel=np.array([[c,b,c],[b,a,b],[c,b,c]])
+	return scipy.signal.convolve2d(arr,kernel,mode="same")
 
 
 
