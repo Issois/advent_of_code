@@ -28,7 +28,7 @@ def main():
 
 
 
-	boilerplate="def main():\n\twith open(\"input\") as f:\n\t\tinp=f.readlines()\n\nmain()"
+	boilerplate="def main():\n\twith open(\"input\") as f:\n\t\tinp=f.read().split(\"\\n\")\n\nmain()"
 
 	for i in range(FILE_COUNT):
 		file_path=dir_path/f"{i+1}.py"
