@@ -61,7 +61,7 @@ def main():
 	files_to_write.append(((dir_path/"input").resolve(),inp))
 
 	for idx,example in enumerate(puzzle.examples):
-		path=(dir_path/f"example{idx+1}_{example.answer_a}_{example.answer_b}").resolve()
+		path=(dir_path/f"example{idx+1}_{example.answer_a}").resolve()
 		files_to_write.append((path,example.input_data))
 
 
