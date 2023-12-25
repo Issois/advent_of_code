@@ -37,7 +37,7 @@ def main():
 	# return
 
 
-	boilerplate="def main():\n\twith open(\"input\") as f:\n\t\tinp=f.read().split(\"\\n\")\n\nmain()"
+	boilerplate="def main():\n\t# with open(\"example1\") as f:\n\twith open(\"input\") as f:\n\t\tinp=f.read().split(\"\\n\")\n\nmain()"
 
 	for i in range(FILE_COUNT):
 		file_path=dir_path/f"{i+1}.py"
@@ -61,7 +61,7 @@ def main():
 	files_to_write.append(((dir_path/"input").resolve(),inp))
 
 	for idx,example in enumerate(puzzle.examples):
-		path=(dir_path/f"example{idx+1}_{example.answer_a}").resolve()
+		path=(dir_path/f"example{idx+1}").resolve()
 		files_to_write.append((path,example.input_data))
 
 
