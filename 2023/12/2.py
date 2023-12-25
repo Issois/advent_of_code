@@ -44,8 +44,8 @@ def main():
 
 		# folded result: 7163
 		# UNFOLD
-		folded=False
 		folded=True
+		folded=False
 		if not folded:
 			springs="?".join([springs]*5)
 			gcnt_broken=",".join([gcnt_broken]*5)
@@ -86,6 +86,7 @@ def main():
 		# print(springs,gcnt_broken)
 		# if PRINT:
 			# print(idx_posps_from_gcnt)
+		# print("INSIDE REC")
 		sub_res=get_possibilities(
 			0,
 			gcnt_broken,
@@ -99,7 +100,7 @@ def main():
 			# print(f"WRONG @{idx}. IS: {sub_res}, SHOULD BE: {PREV_RESULTS[idx]}")
 			# if PREV_RESULTS[idx]<6:
 			# return
-		# print(f"################### {idx+1}/{len(inp)}:  {sub_res}")
+		print(f"################### {idx+1}/{len(inp)}:  {sub_res}")
 		result+=sub_res
 
 	t1=time.process_time()
@@ -137,49 +138,32 @@ def get_possibilities(
 		springs):
 	# if PRINT:
 		# print(f"{('-'*depth).ljust(5)}RECURSE {marked_range(springs,posp_idx_lo,posp_idx_hi)} {marked_range(gcnt_broken,gcnt_idx_lo,gcnt_idx_hi)}")
-	# if gcnt_idx_lo
 	if gcnt_idx_lo==gcnt_idx_hi:
 		gcnt=gcnt_broken[gcnt_idx_lo]
 		idx_posps=idx_posps_from_gcnt[gcnt]
 		over_lo=idx_posps>=posp_idx_lo
 		under_hi=idx_posps<=posp_idx_hi-(gcnt-1)
 		filter_remaining_posps=np.logical_and(over_lo,under_hi)
-		# springs_on_spaces=springs[filter_remaining_posps[posps]]
-		# broken_spring_count=np.nonzero(springs_on_spaces==BROKEN)[0].shape[0]
-
 
 		idx_broken_springs=np.nonzero(springs==BROKEN)[0]
 		idx_broken_springs=idx_broken_springs[idx_broken_springs>=posp_idx_lo]
 		idx_broken_springs=idx_broken_springs[idx_broken_springs<=posp_idx_hi]
 
-		# print(f"{('-'*depth).ljust(5)}  F: BSRPINGS {idx_broken_springs}")
-		# if False:
-			# pass
 		cnt=np.nonzero(filter_remaining_posps)[0].shape[0]
 
 		if cnt>0 and idx_broken_springs.shape[0]>0:
-			cnt=0
-			for idx_remaining_posps in idx_posps[filter_remaining_posps]:
-				if idx_remaining_posps<=idx_broken_springs[0] and idx_remaining_posps+gcnt-1>=idx_broken_springs[-1]:
-					cnt+=1
-
+			idx_remaining_posps=idx_posps[filter_remaining_posps]
+			cnt=np.nonzero(np.logical_and(
+				idx_remaining_posps<=idx_broken_springs[0],
+				idx_remaining_posps+gcnt-1>=idx_broken_springs[-1]
+			))[0].shape[0]
 			# cnt=0
-			# cover_idx=np.searchsorted(idx_remaining_posps,idx_broken_springs[0],side="right")-1
-			# info=f"{idx_remaining_posps} {gcnt} {idx_broken_springs} {cover_idx}"
-			# if GROUP can cover all BROKEN:
-			# if idx_remaining_posps[cover_idx]+gcnt-1>=idx_broken_springs[-1]:
-				# if PRINT:
-					# print(f"{('-'*depth).ljust(5)}  SUCC/COVER: {info}")
-				# cnt=1
-			# else:
-				# if PRINT:
-					# print(f"{('-'*depth).ljust(5)}  FAIL/NOCOV: {info}")
-				# cnt=0
-		# else:
-		# if PRINT:
-			# print(f"{('-'*depth).ljust(5)}  COUNT: {cnt}")
-
+			# for idx_remaining_posps in idx_posps[filter_remaining_posps]:
+				# if idx_remaining_posps<=idx_broken_springs[0] and idx_remaining_posps+gcnt-1>=idx_broken_springs[-1]:
+					# cnt+=1
 		return cnt
+
+
 	gcnt_idx_center=(gcnt_idx_hi+gcnt_idx_lo)//2
 	gcnt=gcnt_broken[gcnt_idx_center]
 	idx_posps=idx_posps_from_gcnt[gcnt]
