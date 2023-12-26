@@ -37,7 +37,16 @@ def main():
 	# return
 
 
-	boilerplate="import numpy as np\ndef main():\n\t# with open(\"example1\") as f:\n\twith open(\"input\") as f:\n\t\tinp=f.read().split(\"\\n\")\n\nmain()"
+	boilerplate=("""
+import numpy as np
+def main():
+	with open("example1" if "e" in sys.argv else "input") as f:
+		inp=f.read().split("\\n")
+	result=0
+
+	print(f"ANSWER: {result}")
+main()
+""")
 
 	for i in range(FILE_COUNT):
 		file_path=dir_path/f"{i+1}.py"
