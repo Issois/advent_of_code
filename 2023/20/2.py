@@ -132,6 +132,10 @@ class SignalQueue:
 		return self.q.queue[0]
 	def empty(self):
 		return self.q.empty()
+	def run(self):
+		while not self.empty():
+			_,mod,sig=self.peek()
+			mod.signal(self)
 
 
 def main():
@@ -150,9 +154,9 @@ def main():
 
 	for mod in mfn.values():
 		mod.initialize()
-		# print(mod)
+		print(mod)
 
-	# return
+	return
 
 
 	queue=SignalQueue()
@@ -161,9 +165,7 @@ def main():
 		# if i%1000==0:
 		# print(i)
 		queue.push((None,mfn[start_module_name],LO))
-		while not queue.empty():
-			_,mod,sig=queue.peek()
-			mod.signal(queue)
+		queue.run()
 
 		# print([f"{mod.name}: {mod.hi_count}/{len(mod.states)}" for mod in mfn.values() if mod.kind==CO])
 
