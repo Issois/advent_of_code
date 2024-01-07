@@ -8,7 +8,7 @@ MAP={".":EMPTY,"#":WALL,"O":ROCK}
 IMAP={v:k for k,v in MAP.items()}
 def main():
 	# with open("example1_136") as f:
-	with open("input") as f:
+	with open("data.input") as f:
 		inp=f.read().split("\n")
 
 

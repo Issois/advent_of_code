@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 def main():
 
-	with open("input") as f:
+	with open("data.input") as f:
 		inp=np.array([list(x) for x in f.read().split("\n")])
 
 	UP=0

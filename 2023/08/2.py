@@ -1,7 +1,7 @@
 import re
 import math
 def main():
-	with open("input") as f:
+	with open("data.input") as f:
 		inp=f.read().split("\n")
 
 	instructions=[to_idx(rl) for rl in inp[0]]

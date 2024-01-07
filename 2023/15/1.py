@@ -1,7 +1,7 @@
 import numpy as np
 def main():
 	# with open("example1") as f:
-	with open("input") as f:
+	with open("data.input") as f:
 		inp=f.read().split(",")
 
 	asc=[[ord(y) for y in x] for x in inp]

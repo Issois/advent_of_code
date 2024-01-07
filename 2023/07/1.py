@@ -7,7 +7,7 @@ values="AKQJT98765432"[::-1]
 values={values[i]:i for i in range(len(values))}
 
 def main():
-	with open("input") as f:
+	with open("data.input") as f:
 		inp=f.read().split()
 
 	inp=np.array(inp,dtype="str")

@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 def main():
-	with open("input") as f:
+	with open("data.input") as f:
 	# with open("input-small-1") as f:
 		inp=f.read().split("\n")
 

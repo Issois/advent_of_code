@@ -41,7 +41,7 @@ OFFS_FROM_DIRE={
 
 
 def main():
-	with open("example1" if "e" in sys.argv else "input") as f:
+	with open("example1.input" if "e" in sys.argv else "data.input") as f:
 		if False:
 			inp=[line.split("#")[1][:-1] for line in f.read().split("\n")]
 			arr=np.array([[int(line[:-1],base=16),(int(line[-1])+1)%4] for line in inp],dtype=np.int64)

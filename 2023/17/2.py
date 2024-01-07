@@ -35,7 +35,7 @@ OFFS_FROM_DIRE={
 }
 
 def main():
-	with open("example1" if "e" in sys.argv else "input") as f:
+	with open("example1.input" if "e" in sys.argv else "data.input") as f:
 		cost=np.array([[int(y) for y in x] for x in f.read().split("\n")])
 	result=0
 	sub=7

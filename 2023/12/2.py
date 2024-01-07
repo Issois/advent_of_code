@@ -25,7 +25,7 @@ def main():
 	# return
 
 	# with open("input-small") as f:
-	with open("input") as f:
+	with open("data.input") as f:
 		inp=f.read().split("\n")
 
 	print("START TIMING")

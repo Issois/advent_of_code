@@ -9,7 +9,7 @@ DICT=2
 
 def main():
 
-	with open("example1" if "e" in sys.argv else "input") as f:
+	with open("example1.input" if "e" in sys.argv else "data.input") as f:
 		inp=f.read().split("\n")
 	result=0
 	workflows={}

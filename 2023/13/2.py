@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 def main():
 
-	with open("input") as f:
+	with open("data.input") as f:
 	# with open("example1_405") as f:
 		matrices=f.read().split("\n\n")
 

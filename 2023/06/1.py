@@ -2,7 +2,7 @@
 
 def main():
 
-	with open("input") as f:
+	with open("data.input") as f:
 		inp=f.readlines()
 
 	times,distances=[[int(x) for x in inp[i].split()[1:]] for i in [0,1]]

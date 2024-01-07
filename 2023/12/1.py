@@ -1,6 +1,6 @@
 import numpy as np
 def main():
-	with open("input") as f:
+	with open("data.input") as f:
 		inp=f.read().split("\n")
 
 	BROKEN=0

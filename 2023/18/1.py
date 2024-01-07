@@ -30,7 +30,7 @@ OFFS_FROM_DIRE={
 
 
 def main():
-	with open("example1" if "e" in sys.argv else "input") as f:
+	with open("example1.input" if "e" in sys.argv else "data.input") as f:
 		inp=(f.read()
 			.replace("U","0")
 			.replace("R","1")

@@ -70,7 +70,7 @@ def main():
 	print("\n")
 
 	if True:
-		with open("input") as f:
+		with open("data.input") as f:
 			inp=f.read()
 
 		paras=inp.split("\n\n")

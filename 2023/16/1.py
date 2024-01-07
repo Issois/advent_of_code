@@ -48,7 +48,7 @@ HI_ENER="#"
 START=array(0,-1)
 
 def main():
-	with open("example1" if "e" in sys.argv else "input") as f:
+	with open("example1.input" if "e" in sys.argv else "data.input") as f:
 		inp=np.array([list(x) for x in f.read().split("\n")])
 
 	FILT={k:inp==v[SYMBOL] for k,v in INFO.items() if k!=EM}

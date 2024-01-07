@@ -1,6 +1,6 @@
 
 def main():
-	with open("1.inp") as f:
+	with open("data.input") as f:
 		inp=f.readlines()
 
 
