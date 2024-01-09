@@ -1,7 +1,8 @@
-
+import matplotlib.pyplot as plt
 import numpy as np
 import sys
 from queue import Queue
+import networkx as nx
 
 HI=1
 LO=0
@@ -10,23 +11,31 @@ SRC=0
 TGT=1
 SIG=2
 
+
 BR=0
 FL=1
 CO=2
+FI=3
 
 MOD_NAME={
-	BR:"  ",
-	FL:"% ",
-	CO:" >",
+	BR:" ",
+	FL:"%",
+	CO:">",
+	FI:"#",
 }
 
 class Module:
+	NEXT_ID=0
 	def __init__(self,line):
 		self.name,out_list=line.split(" -> ")
 		self.inp=[]
 		self.out=[]
 		self.output_names=out_list.split(", ")
+		if len(out_list)==0:
+			self.output_names=[]
 		self.kind=None
+		self.id=Module.NEXT_ID
+		Module.NEXT_ID+=1
 
 	def initialize(self):
 		pass
@@ -56,7 +65,7 @@ class Module:
 
 	def __repr__(self):return str(self)
 	def __str__(self):
-		return f"{self.name:3} {MOD_NAME[self.kind]} from [{mod_list_str(self.inp):27}] to [{mod_list_str(self.out):27}]"
+		return f"{self.name:2}/{self.id:2} {MOD_NAME[self.kind]} from [{mod_list_str(self.inp):35}] to [{mod_list_str(self.out):35}]"
 
 
 class FlipFlop(Module):
@@ -109,14 +118,27 @@ class Broadcast(Module):
 		super(Broadcast,self).__init__(line)
 		self.kind=BR
 
+class Final(Module):
+	def __init__(self,line):
+		super(Broadcast,self).__init__(line)
+		self.kind=FI
+
+	def signal(self,queue):
+		
+
 
 def mod_list_str(modules):
-	return ",".join([m.name for m in modules])
+	# print(modules)
+	# return ",".join([MOD_NAME[m.kind]+m.name for m in modules])
+	# return ",".join([m.name for m in modules])
+	return ",".join([f"{m.id:2}" for m in modules])
 
 GEN={
 	"b":Broadcast,
 	"%":FlipFlop,
 	"&":Conjunction,
+	"#":Final
+
 }
 
 class SignalQueue:
@@ -140,14 +162,18 @@ class SignalQueue:
 
 def main():
 	start_module_name="__"
-	with open("example1" if "e" in sys.argv else "input") as f:
+	with open("custom_example1.input" if "e" in sys.argv else "data.input") as f:
 		inp=f.read().replace("broadcaster","b"+start_module_name).split("\n")
+		if not "e" in sys.argv:
+			inp+=["&rx -> "]
 	# start_signals=inp[0].split(" -> ")[1].split(", ")
 
 	mfn={}
 	for line in inp:
 		mod=Module.gen(line)
 		mfn[mod.name]=mod
+
+	# mod=Module()
 
 	for mod in mfn.values():
 		mod.link(mfn)
@@ -156,12 +182,38 @@ def main():
 		mod.initialize()
 		print(mod)
 
-	return
 
+	# dof=0
+
+	# for mod in mfn.values():
+	# 	if mod.kind==FL:
+	# 		dof+=1
+	# 	elif mod.kind==CO:
+	# 		for imod in mod.inp:
+	# 			if imod.kind!=FL:
+	# 				dof+=1
+
+	# print(f"Number of states: {dof}")
+
+	# graph=nx.DiGraph()
+
+	# for mod in mfn.values():
+	# 	graph.add_node(mod.name)
+	# for mod in mfn.values():
+	# 	for omod in mod.out:
+	# 		graph.add_edge(mod.name,omod.name)
+
+	# nx.draw_networkx(graph,with_labels=True)
+	# plt.show()
+
+
+
+
+	# return
 
 	queue=SignalQueue()
 
-	for i in range(100000):
+	for i in range(1000):
 		# if i%1000==0:
 		# print(i)
 		queue.push((None,mfn[start_module_name],LO))
@@ -183,7 +235,7 @@ def main():
 
 
 	# print(signal_queue)
-	result=queue.pulse_count[LO]*queue.pulse_count[HI]
+	# result=queue.pulse_count[LO]*queue.pulse_count[HI]
 
 	print(f"ANSWER: {result}")
 main()

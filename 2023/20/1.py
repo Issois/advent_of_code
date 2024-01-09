@@ -133,7 +133,7 @@ class SignalQueue:
 
 def main():
 	start_module_name="__"
-	with open("example1" if "e" in sys.argv else "input") as f:
+	with open("example1.input" if "e" in sys.argv else "data.input") as f:
 		inp=f.read().replace("broadcaster","b"+start_module_name).split("\n")
 	# start_signals=inp[0].split(" -> ")[1].split(", ")
 
