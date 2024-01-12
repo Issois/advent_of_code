@@ -13,6 +13,7 @@ try:
 except Exception:
 	traceback.print_exc()
 	input(f"Some import error happened. Press any key to continue.")
+	exit()
 
 NL="\n"
 BOILERPLATE=("""
@@ -85,8 +86,11 @@ class Ui:
 
 		cmd=Ui.Cmd.none
 		while not cmd==Ui.Cmd.exit:
-			cmd=Ui.Cmd(self.get_input(" ")[0])
-			self.act[cmd]()
+			try:
+				cmd=Ui.Cmd(self.get_input(" ")[0])
+				self.act[cmd]()
+			except Exception as exc:
+				print(exc)
 
 
 	class Cmd(Enum):
