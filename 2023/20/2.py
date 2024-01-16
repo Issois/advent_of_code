@@ -120,18 +120,23 @@ class Broadcast(Module):
 
 class Final(Module):
 	def __init__(self,line):
-		super(Broadcast,self).__init__(line)
+		super(Final,self).__init__(line)
 		self.kind=FI
 
 	def signal(self,queue):
-		
+		_,_,sig=queue.peek()
+		if sig==LO:
+			print("FINAL received LO signal.")
+			queue.q.clear()
+
+		super(Conjunction,self).signal(queue)
 
 
 def mod_list_str(modules):
 	# print(modules)
 	# return ",".join([MOD_NAME[m.kind]+m.name for m in modules])
-	# return ",".join([m.name for m in modules])
-	return ",".join([f"{m.id:2}" for m in modules])
+	return ",".join([m.name for m in modules])
+	# return ",".join([f"{m.id:2}" for m in modules])
 
 GEN={
 	"b":Broadcast,
@@ -165,7 +170,7 @@ def main():
 	with open("custom_example1.input" if "e" in sys.argv else "data.input") as f:
 		inp=f.read().replace("broadcaster","b"+start_module_name).split("\n")
 		if not "e" in sys.argv:
-			inp+=["&rx -> "]
+			inp+=["#rx -> "]
 	# start_signals=inp[0].split(" -> ")[1].split(", ")
 
 	mfn={}
@@ -195,13 +200,37 @@ def main():
 
 	# print(f"Number of states: {dof}")
 
-	# graph=nx.DiGraph()
+	graph=nx.DiGraph()
 
-	# for mod in mfn.values():
-	# 	graph.add_node(mod.name)
-	# for mod in mfn.values():
-	# 	for omod in mod.out:
-	# 		graph.add_edge(mod.name,omod.name)
+	for mod in mfn.values():
+		graph.add_node(mod.name,subs=-1)
+	for mod in mfn.values():
+		for omod in mod.out:
+			graph.add_edge(mod.name,omod.name)
+
+	find_subsytems(graph,"__","rx")
+
+def find_subsytems(graph,start_nn,end_nn):
+
+
+	# start_node=graph[]
+
+	# graph.nodes[start_node_name]["subs"]=0
+	# nn_to_check=[start_node_name]
+
+	# while len(nn_to_check)>0:
+	# 	nn=nn_to_check.pop()
+	# 	if graph.nodes[nn]["subs"]=-1:
+
+
+
+	# # nn=start_node_name
+	# print(graph.nodes[nn])
+	# print(graph.nodes[nn])
+
+	# while True:
+
+
 
 	# nx.draw_networkx(graph,with_labels=True)
 	# plt.show()
@@ -209,33 +238,36 @@ def main():
 
 
 
-	# return
+	# # return
 
-	queue=SignalQueue()
+	# queue=SignalQueue()
 
-	for i in range(1000):
-		# if i%1000==0:
-		# print(i)
-		queue.push((None,mfn[start_module_name],LO))
-		queue.run()
+	# for i in range(1000):
+	# 	# if i%1000==0:
+	# 	# print(i)
+	# 	queue.push((None,mfn[start_module_name],LO))
+	# 	queue.run()
 
-		# print([f"{mod.name}: {mod.hi_count}/{len(mod.states)}" for mod in mfn.values() if mod.kind==CO])
-
-
-			# print(mfn["gf"].states)
-			# print(mfn["qs"].states)
-			# print(mfn["sv"].states)
-			# print(mfn["pg"].states)
-			# print(mfn["sp"].states)
-
-			# if mod.name=="rx":
-				# print(i,sig)
-				# break
+	# 	# print([f"{mod.name}: {mod.hi_count}/{len(mod.states)}" for mod in mfn.values() if mod.kind==CO])
 
 
+	# 		# print(mfn["gf"].states)
+	# 		# print(mfn["qs"].states)
+	# 		# print(mfn["sv"].states)
+	# 		# print(mfn["pg"].states)
+	# 		# print(mfn["sp"].states)
 
-	# print(signal_queue)
-	# result=queue.pulse_count[LO]*queue.pulse_count[HI]
+	# 		# if mod.name=="rx":
+	# 			# print(i,sig)
+	# 			# break
 
-	print(f"ANSWER: {result}")
+
+
+	# # print(signal_queue)
+	# # result=queue.pulse_count[LO]*queue.pulse_count[HI]
+
+	# print(f"ANSWER: {result}")
+
+
+
 main()
