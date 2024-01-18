@@ -36,6 +36,8 @@ class Module:
 		self.kind=None
 		self.id=Module.NEXT_ID
 		Module.NEXT_ID+=1
+		self.print_signal=False
+		self.on_signal=lambda src,dst,sig:None
 
 	def initialize(self):
 		pass
@@ -50,15 +52,12 @@ class Module:
 			self.out.append(mod)
 			mod.inp.append(self)
 
-	def signal(self,queue,new_signal=None):
-		_,_,sig=queue.pop()
-		if new_signal is not None:
-			sig=new_signal
-		# print(f" Module {self.name} signals {sig} to ",end="")
+	def signal(self,queue,sig):
+		queue.pop()
+
 		for mod in self.out:
-			# print(f"{mod.name} ",end="")
+			self.on_signal(self,mod,sig)
 			queue.push((self,mod,sig))
-		# print()
 
 	def gen(line):
 		return GEN[line[0]](line[1:])
@@ -96,9 +95,13 @@ class Conjunction(Module):
 		self.hi_count=0
 
 	def signal(self,queue):
-		src,_,sig=queue.peek()
+		src,dst,sig=queue.peek()
 		prev_state=self.states[src.name]
 		self.states[src.name]=sig
+
+		# if self.name=="gf":
+			# print(src.name,dst.name,sig)
+			# print(self.states)
 
 		if prev_state!=sig:
 			if sig==HI:
@@ -117,6 +120,8 @@ class Broadcast(Module):
 	def __init__(self,line):
 		super(Broadcast,self).__init__(line)
 		self.kind=BR
+	def signal(self,queue):
+		super(Broadcast,self).signal(queue,queue.peek()[2])
 
 class Final(Module):
 	def __init__(self,line):
@@ -129,14 +134,15 @@ class Final(Module):
 			print("FINAL received LO signal.")
 			queue.q.clear()
 
-		super(Conjunction,self).signal(queue)
+		super(Final,self).signal(queue,sig)
+
+
+
+
 
 
 def mod_list_str(modules):
-	# print(modules)
-	# return ",".join([MOD_NAME[m.kind]+m.name for m in modules])
 	return ",".join([m.name for m in modules])
-	# return ",".join([f"{m.id:2}" for m in modules])
 
 GEN={
 	"b":Broadcast,
@@ -149,9 +155,9 @@ GEN={
 class SignalQueue:
 	def __init__(self):
 		self.q=Queue()
-		self.pulse_count={LO:0,HI:0}
+		# self.pulse_count={LO:0,HI:0}
 	def push(self,elem):
-		self.pulse_count[elem[SIG]]+=1
+		# self.pulse_count[elem[SIG]]+=1
 		self.q.put(elem)
 	def pop(self):
 		return self.q.get()
@@ -162,8 +168,10 @@ class SignalQueue:
 	def run(self):
 		while not self.empty():
 			_,mod,sig=self.peek()
+			# print("QUEUE: "+str(self))
 			mod.signal(self)
-
+	def __str__(self):
+		return "  ".join([f"{src.name if src is not None else '  '}:{dst.name if dst is not None else '  '}:{sig}" for src,dst,sig in self.q.queue])
 
 def main():
 	start_module_name="__"
@@ -200,19 +208,19 @@ def main():
 
 	# print(f"Number of states: {dof}")
 
-	graph=nx.DiGraph()
+	# graph=nx.DiGraph()
 
-	for mod in mfn.values():
-		graph.add_node(mod.name,subs=-1)
-	for mod in mfn.values():
-		for omod in mod.out:
-			graph.add_edge(mod.name,omod.name)
+	# for mod in mfn.values():
+	# 	graph.add_node(mod.name,subs=-1)
+	# for mod in mfn.values():
+	# 	for omod in mod.out:
+	# 		graph.add_edge(mod.name,omod.name)
 
-	find_subsytems(graph,"__","rx")
+	# find_subsytems(mfn,"__","rx")
 
-def find_subsytems(graph,start_nn,end_nn):
+# def find_subsytems(mfn,start_nn,end_nn):
 
-
+	# pass
 	# start_node=graph[]
 
 	# graph.nodes[start_node_name]["subs"]=0
@@ -235,18 +243,44 @@ def find_subsytems(graph,start_nn,end_nn):
 	# nx.draw_networkx(graph,with_labels=True)
 	# plt.show()
 
+	def on_signal(src,dst,sig):
+		nonlocal found
+		if sig==HI:
+			found=True
+			# print(f" RUN {run_num+1}: {src.name} signals {sig} to {dst.name}")
 
-
+	mfn["qs"].on_signal=on_signal
+	mfn["sv"].on_signal=on_signal
+	mfn["pg"].on_signal=on_signal
+	mfn["sp"].on_signal=on_signal
+	# mfn["gf"].print_signal=True
+	# mfn["rx"].print_signal=True
 
 	# # return
+	mods=["bx","jq","nv","jp"]
 
-	# queue=SignalQueue()
 
-	# for i in range(1000):
+
+	COUNT=100000
+	count_from_mod={}
+	for mod in mods:
+		print(f"Checking {mod}")
+		queue=SignalQueue()
+		found=False
+		for run_num in range(COUNT):
+			queue.push((None,mfn[mod],LO))
+			queue.run()
+			if found:
+				count_from_mod[mod]=run_num+1
+				break
+	print(count_from_mod)
+	result=1
+	for val in count_from_mod.values():
+		result*=val
+
+		# print(f"{i+1}/{COUNT}")
 	# 	# if i%1000==0:
 	# 	# print(i)
-	# 	queue.push((None,mfn[start_module_name],LO))
-	# 	queue.run()
 
 	# 	# print([f"{mod.name}: {mod.hi_count}/{len(mod.states)}" for mod in mfn.values() if mod.kind==CO])
 
@@ -266,7 +300,7 @@ def find_subsytems(graph,start_nn,end_nn):
 	# # print(signal_queue)
 	# # result=queue.pulse_count[LO]*queue.pulse_count[HI]
 
-	# print(f"ANSWER: {result}")
+	print(f"ANSWER: {result}")
 
 
 
