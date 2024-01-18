@@ -25,6 +25,7 @@ def main():
 	# print(rocks)
 	dirs=[[-1,0],[1,0],[0,1],[0,-1]]
 
+	# step_count=15
 
 	for step in range(step_count):
 		new_poss=set()
@@ -52,7 +53,7 @@ def main():
 	for rest_pos in rest_poss:
 		arr[rest_pos]+=1
 		if (rest_pos[X]+rest_pos[Y])%2==target_spaces:
-			arr[rest_pos]+=1
+			# arr[rest_pos]+=1
 			result+=1
 			# print(rest_pos)
 
