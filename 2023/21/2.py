@@ -44,18 +44,18 @@ def main():
 
 	DIM=inp.shape[X]
 
-	total_steps=io[0]
-	plot_count=io[1]
+	total_steps=io[0][0]
+	plot_count=io[0][1]
 
 	center_index=DIM//2
 	steps_to_reach_next_field_from_center=DIM-center_index
 
-	count_inside_non_center_fields=(total_steps-steps_to_reach_next_field_from_center)//DIM
+	count_non_center_fields=((total_steps-steps_to_reach_next_field_from_center)//DIM)+1
 	steps_inside_last_field=(total_steps-steps_to_reach_next_field_from_center)%DIM
 
 	if steps_inside_last_field>center_index:
 		steps_inside_diagB=steps_inside_last_field-steps_to_reach_next_field_from_center
-		steps_inside_diagA=steps_into_diagB+DIM
+		steps_inside_diagA=steps_inside_diagB+DIM
 	elif steps_inside_last_field==center_index:
 		steps_inside_diagA=DIM-1
 		# only one diagonal.
@@ -64,12 +64,14 @@ def main():
 		steps_inside_diagB=steps_inside_last_field+DIM
 		steps_inside_diagA=steps_into_diagB-steps_to_reach_next_field_from_center
 
-	fparity_last_field=(fparity_start_field+count_inside_non_center_fields+1)%2
+	fparity_last_field=(fparity_start_field+count_non_center_fields)%2
 	fparity_diagA=fparity_last_field
 	fparity_diagB=(fparity_diagA+1)%2
 
-	print(f"{count_inside_non_center_fields=},{steps_inside_last_field=}")
-	# print(f"{count_inside_non_center_fields=}")
+	print(f"{count_non_center_fields=},{steps_inside_last_field=}")
+	print(f"{fparity_diagA=},{fparity_diagB=}")
+	print(f"{steps_inside_diagA=},{steps_inside_diagB=}")
+	# print(f"{count_non_center_fields=}")
 
 	# field_span=total_steps//DIM
 
