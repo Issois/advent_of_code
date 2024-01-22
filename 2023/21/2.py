@@ -1,6 +1,6 @@
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
-import scipy
+# import scipy
 import sys
 
 X=0
@@ -12,12 +12,53 @@ O=1
 EVEN=0
 ODD=1
 
+OUTSIDE=0
+ON_EDGE=1
+INSIDE=2
+
+	# STATE==OUTSIDE
+	#
+	#  B
+	#  AB
+	#  FAB
+	#  FFAB
+	#  FFFAB
+	#  FFFFAB
+	#  FFFFFAB
+	# SFFFFFFE
+
+	# STATE==ON_EDGE
+	#
+	#
+	#  A
+	#  FA
+	#  FFA
+	#  FFFA
+	#  FFFFA
+	#  FFFFFA
+	# SFFFFFFE
+
+	# STATE==INSIDE
+	#
+	#
+	#  A
+	#  BA
+	#  FBA
+	#  FFBA
+	#  FFFBA
+	#  FFFFBA
+	# SFFFFFIE
+
 def main():
+
+	# for i in range(1,10):
+	# 	print(csum_even(i),csum_odd(i))
+	# return
 
 	if "e" in sys.argv:
 		io=[
-			(6,16),
-			(10,50),
+			# (6,16),
+			# (10,50),
 			(50,1594),
 			(100,6536),
 			(500,167004),
@@ -38,9 +79,8 @@ def main():
 	# start_pos=(st[0][0],st[1][0])
 
 	# ASSUME: Start pos is in center of field.
-	# ASSUME: Field is a square with odd length.
-
-	fparity_start_field=EVEN
+	# ASSUME: Field is a square with odd length (DIM%2==1).
+	# ASSUME: No big labyrinths, can find full field in 2*DIM steps.
 
 	DIM=inp.shape[X]
 
@@ -49,66 +89,157 @@ def main():
 
 	center_index=DIM//2
 	steps_to_reach_next_field_from_center=DIM-center_index
-
+	steps_inside={}
 	count_non_center_fields=((total_steps-steps_to_reach_next_field_from_center)//DIM)+1
-	steps_inside_last_field=(total_steps-steps_to_reach_next_field_from_center)%DIM
 
-	if steps_inside_last_field>center_index:
-		steps_inside_diagB=steps_inside_last_field-steps_to_reach_next_field_from_center
-		steps_inside_diagA=steps_inside_diagB+DIM
-	elif steps_inside_last_field==center_index:
-		steps_inside_diagA=DIM-1
-		# only one diagonal.
-		steps_inside_diagB=None
+
+
+	# Start field. Factor 2 because of labyrinths etc.
+	steps_inside["S"]=DIM*2
+	# steps_inside["S"]=DIM-1
+	# Corner field.
+	steps_inside["C"]=(total_steps-steps_to_reach_next_field_from_center)%DIM
+	# Full field.
+	steps_inside["F"]=steps_inside["S"]
+	# INSIDE extra field.
+	steps_inside["I"]=steps_inside["C"]+DIM
+
+	parity={"S":EVEN}
+	parity["C"]=(parity["S"]+count_non_center_fields)%2
+	parity["I"]=inv(parity["C"])
+	# A edge field.
+	parity["A"]=parity["C"]
+	# B edge field.
+	parity["B"]=parity["I"]
+
+	count_per_quadrant={
+		"E":1,
+		"I":0,
+		"A":count_non_center_fields-1,
+		"B":count_non_center_fields,
+		"Feven":csum_even(count_non_center_fields-1),
+		"Fodd":csum_odd(count_non_center_fields-1),
+	}
+
+	if steps_inside["C"]>center_index:
+		STATE=OUTSIDE
+		steps_inside["B"]=steps_inside["C"]-steps_to_reach_next_field_from_center
+		steps_inside["A"]=steps_inside["B"]+DIM
+		F_radius=count_non_center_fields-1
+	elif steps_inside["C"]==center_index:
+		STATE=ON_EDGE
+		steps_inside["A"]=DIM-1
+		steps_inside["B"]=0
+		F_radius=count_non_center_fields-1
+		count_per_quadrant["B"]=0
 	else:
-		steps_inside_diagB=steps_inside_last_field+DIM
-		steps_inside_diagA=steps_into_diagB-steps_to_reach_next_field_from_center
-
-	fparity_last_field=(fparity_start_field+count_non_center_fields)%2
-	fparity_diagA=fparity_last_field
-	fparity_diagB=(fparity_diagA+1)%2
-
-	print(f"{count_non_center_fields=},{steps_inside_last_field=}")
-	print(f"{fparity_diagA=},{fparity_diagB=}")
-	print(f"{steps_inside_diagA=},{steps_inside_diagB=}")
-	# print(f"{count_non_center_fields=}")
-
-	# field_span=total_steps//DIM
-
-	# remaining=total_steps%inp.shape[X]
-
-	# print((center_index+steps_to_reach_next_field)%DIM)
+		STATE=INSIDE
+		steps_inside["A"]=steps_inside["C"]+DIM-steps_to_reach_next_field_from_center
+		steps_inside["B"]=steps_inside["A"]+DIM
+		F_radius=count_non_center_fields-2
+		count_per_quadrant["B"]=count_non_center_fields-2
+		count_per_quadrant["I"]=1
+		count_per_quadrant["Feven"]=csum_even(count_non_center_fields-2)
+		count_per_quadrant["Fodd"]=csum_odd(count_non_center_fields-2)
 
 
-	return
+	result=0
 
-	# steps_into_final_field=
+	PARITY=total_steps%2
 
-	# print(field_span,remaining,130-66)
+	plots={}
+
+	# Last index.
+	CI=center_index
+	# Last index.
+	LI=DIM-1
+
+	center_start_pos=(CI,CI)
+
+	# EtoN: East corner and everything north above.
+	start_pos_from_quadrant={
+		"EtoN":((LI, 0),(CI, 0)),
+		"NtoW":((LI,LI),(LI,CI)),
+		"WtoS":((0 ,LI),(CI,LI)),
+		"StoE":((0 , 0),(0 ,CI)),
+	}
+
+	full_plots=get_plots(center_start_pos,steps_inside["S"],rocks,(DIM,DIM))
+	# for i in range(40):
+	# 	full_plots=get_plots(center_start_pos,i,rocks,(DIM,DIM))
+	# 	print(i,full_plots)
 
 	# return
 
+	for quadrant,(start_pos_diag,start_pos_cardinal) in start_pos_from_quadrant.items():
+		plots[quadrant]={}
+		plots[quadrant]["C"]=get_plots(start_pos_cardinal,steps_inside["C"],rocks,(DIM,DIM))
 
-	print(get_counts(start_pos,step_count,rocks,inp.shape))
-	print(get_counts((130,0),130-66,rocks,inp.shape))
+		plots[quadrant]["A"]=get_plots(start_pos_diag,steps_inside["A"],rocks,(DIM,DIM))
 
+		if STATE!=ON_EDGE:
+			plots[quadrant]["B"]=get_plots(start_pos_diag,steps_inside["B"],rocks,(DIM,DIM))
+		else:
+			plots[quadrant]["B"]=(0,0)
 
-	# start: odd, step: even -> all odd
-	# plt.imshow(arr)
-	# plt.show()
+		if STATE==INSIDE:
+			plots[quadrant]["I"]=get_plots(start_pos_cardinal,steps_inside["I"],rocks,(DIM,DIM))
+		else:
+			plots[quadrant]["I"]=(0,0)
 
-	# print(rk)
-	# print(st)
-	# print(inp.shape)
+	QUADCNT=4
 
+	# Start field.
+	result=full_plots[pcomb(parity["S"],PARITY)]
 
+	result+=QUADCNT*count_per_quadrant["Feven"]*full_plots[EVEN]
+	result+=QUADCNT*count_per_quadrant["Fodd"]*full_plots[ODD]
 
-	# print(f"ANSWER: {result}")
+	for quadrant in start_pos_from_quadrant:
+		result+=plots[quadrant]["C"][pcomb(parity["C"],PARITY)]
+		for field in "ABI":
+			result+=plots[quadrant][field][pcomb(parity[field],PARITY)]*count_per_quadrant[field]
 
+	print(f"{DIM=},{total_steps=}")
+	print(f"{steps_inside=}")
+	print(f"{count_non_center_fields=}")
+	print(f"{count_per_quadrant=}")
+	print(f"{PARITY=},{parity=}")
+	print(f"{full_plots=}")
+	for card,plot in plots.items():
+		print(card,plot)
 
-def get_counts(start_pos,steps,rocks,shape):
+	print(f"ANSWER: {result}, state: {STATE}")
+	# 632421646069917 is too low
+
+def csum_odd(n):
+	n-=1-(n%2)
+	term_count=((n+1)//2)
+	return term_count**2
+	# return csum(term_count)+csum(term_count-1)
+
+def csum_even(n):
+	n=(n//2)*2
+	term_count=n//2
+	return term_count*(term_count+1)
+	# return csum(term_count+1)-1+csum(term_count-1)
+
+def csum(n):
+	return (n*(n+1))/2
+
+def inv(parity):
+	return 1-parity
+
+def pcomb(*parities):
+	res=0
+	for parity in parities:
+		res+=parity
+	return res%2
+
+def get_plots(start_pos,steps,rocks,shape):
 	old_poss={start_pos}
 	rest_poss=set()
+	new_poss=set()
 
 	dirs=[[-1,0],[1,0],[0,1],[0,-1]]
 
