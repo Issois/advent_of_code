@@ -83,6 +83,8 @@ def main():
 	# ASSUME: No big labyrinths, can find full field in 2*DIM steps.
 	# ASSUME: Step count big enough to cover at least ~3 fields.
 
+
+
 	DIM=inp.shape[X]
 
 	IDX=0

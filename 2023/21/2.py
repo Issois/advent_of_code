@@ -16,38 +16,7 @@ OUTSIDE=0
 ON_EDGE=1
 INSIDE=2
 
-	# STATE==OUTSIDE
-	#
-	#  B
-	#  AB
-	#  FAB
-	#  FFAB
-	#  FFFAB
-	#  FFFFAB
-	#  FFFFFAB
-	# SFFFFFFE
 
-	# STATE==ON_EDGE
-	#
-	#
-	#  A
-	#  FA
-	#  FFA
-	#  FFFA
-	#  FFFFA
-	#  FFFFFA
-	# SFFFFFFE
-
-	# STATE==INSIDE
-	#
-	#
-	#  A
-	#  BA
-	#  FBA
-	#  FFBA
-	#  FFFBA
-	#  FFFFBA
-	# SFFFFFIE
 
 def main():
 
