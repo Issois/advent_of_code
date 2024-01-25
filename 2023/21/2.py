@@ -1,4 +1,4 @@
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import numpy as np
 # import scipy
 import sys
@@ -6,23 +6,23 @@ import sys
 X=0
 Y=1
 
-I=0
-O=1
-
 EVEN=0
 ODD=1
 
-OUTSIDE=0
-ON_EDGE=1
-INSIDE=2
+NO=0
+NE=1
+EA=2
+SE=3
+SO=4
+SW=5
+WE=6
+NW=7
+
 
 
 
 def main():
 
-	# for i in range(1,10):
-	# 	print(csum_even(i),csum_odd(i))
-	# return
 
 	if "e" in sys.argv:
 		io=[
@@ -41,167 +41,132 @@ def main():
 	with open("example1.input" if "e" in sys.argv else "data.input") as f:
 		inp=np.array([list(x) for x in f.read().split("\n")])
 
-	# st=np.nonzero(inp=="S")
-	rk=np.nonzero(inp=="#")
-
-	rocks={x for x in zip(*rk)}
-	# start_pos=(st[0][0],st[1][0])
-
-	# ASSUME: Start pos is in center of field.
-	# ASSUME: Field is a square with odd length (DIM%2==1).
-	# ASSUME: No big labyrinths, can find full field in 2*DIM steps.
-	# ASSUME: Step count big enough to cover at least ~3 fields.
-
-	DIM=inp.shape[X]
-
 	IDX=0
 
-	total_steps=io[IDX][0]
-	plot_count =io[IDX][1]
-
-	center_index=DIM//2
-	steps_to_reach_next_field_from_center=DIM-center_index
-	steps_inside={}
-	count_non_center_fields=((total_steps-steps_to_reach_next_field_from_center)//DIM)+1
+	total_stepcount=io[IDX][0]
+	plot_count     =io[IDX][1]
 
 
+	rk=np.nonzero(inp=="#")
+	rocks={x for x in zip(*rk)}
 
-	# Start field. Factor 2 because of labyrinths etc.
-	steps_inside["S"]=DIM*2
-	# steps_inside["S"]=DIM-1
-	# Corner field.
-	steps_inside["C"]=(total_steps-steps_to_reach_next_field_from_center)%DIM
-	# Full field.
-	steps_inside["F"]=steps_inside["S"]
-	# INSIDE extra field.
-	steps_inside["I"]=steps_inside["C"]+DIM
+	# print(get_plots((0,0),5,rocks,inp.shape))
+	# return
+	# arr=np.zeros(inp.shape)
+	# arr[rk]=1
+	# arr[start]=2
 
-	parity={"S":EVEN}
-	parity["C"]=(parity["S"]+count_non_center_fields)%2
-	parity["I"]=inv(parity["C"])
-	# A edge field.
-	parity["A"]=parity["C"]
-	# B edge field.
-	parity["B"]=parity["I"]
+	# ASSUME: Field is a square with odd length (DIM%2==1).
+	DIM=inp.shape[0]
+	# ASSUME: Start pos is in center of field.
+	start=(DIM//2,DIM//2)
+	# ASSUME: first, middle and last row/col are without rocks.
 
-	count_per_quadrant={
-		"E":1,
-		"I":0,
-		"A":count_non_center_fields-1,
-		"B":count_non_center_fields,
-		"Feven":csum_even(count_non_center_fields-1),
-		"Fodd":csum_odd(count_non_center_fields-1),
+	stepcount_middle_to_next={}
+	stepcount_middle_to_next["card"]=DIM-start[X]
+	stepcount_middle_to_next["diag"]=2*stepcount_middle_to_next["card"]
+
+	levels_from_dtype={
+		"card":[1,2],
+		"diag":[0,1,2],
 	}
+	PARITY=total_stepcount%2
 
-	if steps_inside["C"]>center_index:
-		STATE=OUTSIDE
-		steps_inside["B"]=steps_inside["C"]-steps_to_reach_next_field_from_center
-		steps_inside["A"]=steps_inside["B"]+DIM
-		F_radius=count_non_center_fields-1
-	elif steps_inside["C"]==center_index:
-		STATE=ON_EDGE
-		steps_inside["A"]=DIM-1
-		steps_inside["B"]=0
-		F_radius=count_non_center_fields-1
-		count_per_quadrant["B"]=0
-	else:
-		STATE=INSIDE
-		steps_inside["A"]=steps_inside["C"]+DIM-steps_to_reach_next_field_from_center
-		steps_inside["B"]=steps_inside["A"]+DIM
-		F_radius=count_non_center_fields-2
-		count_per_quadrant["B"]=count_non_center_fields-2
-		count_per_quadrant["I"]=1
-		count_per_quadrant["Feven"]=csum_even(count_non_center_fields-2)
-		count_per_quadrant["Fodd"]=csum_odd(count_non_center_fields-2)
+	print(f"{DIM=}")
+	print(f"{total_stepcount=}")
+	print(f"{PARITY=}")
+	print(f"{plot_count=}")
+	# print(f"{stepcount_middle_to_next_card=}")
+	# print(f"{stepcount_middle_to_next_diag=}")
 
+	fieldstepcount={}
+	fieldstepcount["card"]={lvl:((total_stepcount-stepcount_middle_to_next["card"])//DIM)-(lvl-1) for lvl in levels_from_dtype["card"]}
+	fieldstepcount["diag"]={lvl:fieldstepcount["card"][1]-lvl for lvl in levels_from_dtype["diag"]}
+
+	a={1 for x in [1]}
+	stepcount_into={
+		dtype:{
+			lvl:total_stepcount-stepcount_middle_to_next[dtype]-(fieldstepcount[dtype][lvl]*DIM) for lvl in lvls
+		} for dtype,lvls in levels_from_dtype.items()
+	}
+	#
+	# stepcoun t_into_diag_LVL={lvl:total_stepcount-stepcount_middle_to_next_diag-(fieldstepcount_to_diag_LVL[lvl]*DIM) for lvl in LVLS_DIAG}
+
+	print(f"{stepcount_into['card'][1]=}")
+	print(f"{stepcount_into['card'][2]=}")
+	print(f"{stepcount_into['diag'][0]=}")
+	print(f"{stepcount_into['diag'][1]=}")
+	print(f"{stepcount_into['diag'][2]=}")
+
+	parity_field_lvl1=(fieldstepcount["card"][1]+1)%2
+	print(f"{parity_field_lvl1=}")
+
+	parity_from_level={lvl:(parity_field_lvl1+lvl+1)%2 for lvl in levels_from_dtype["diag"]}
+
+	print(f"{parity_from_level=}")
+
+	# ASSUME: No big labyrinths, can find full field in 2*DIM steps.
+	plots_full=get_plots(start,2*DIM,rocks,inp.shape)
+
+	full_radius=fieldstepcount["card"][2]
+
+	full_count_from_parity={
+		EVEN:(csum_even(full_radius)*4)+1,
+		ODD :(csum_odd (full_radius)*4),
+	}
+	# print(f"{full_radius=}")
+	# print(f"{full_count_from_parity=}")
+	# return
+
+	CARD_DIRES={NO,EA,SO,WE}
+
+	fieldcount={}
+	fieldcount["card"]={lvl:1 for lvl in levels_from_dtype["card"]}
+	fieldcount["diag"]={lvl:fieldstepcount["card"][1]+1-lvl for lvl in levels_from_dtype["diag"]}
+
+	print(f"{fieldcount=}")
+
+	start_pos_from_dire={
+		NO:(DIM-1 ,DIM//2),
+		NE:(DIM-1 ,0     ),
+		EA:(DIM//2,0     ),
+		SE:(0     ,0     ),
+		SO:(0     ,DIM//2),
+		SW:(0     ,DIM-1 ),
+		WE:(DIM//2,DIM-1 ),
+		NW:(DIM-1 ,DIM-1 ),
+	}
 
 	result=0
 
-	PARITY=total_steps%2
+	PARITIES=[EVEN,ODD]
+	for par in PARITIES:
 
-	plots={}
+		print(f"{par=},{plots_full[par]=},{full_count_from_parity[par]=}")
+		result+=plots_full[par]*full_count_from_parity[par]
 
-	# Last index.
-	CI=center_index
-	# Last index.
-	LI=DIM-1
+	for dire,start_pos in start_pos_from_dire.items():
+		print()
 
-	center_start_pos=(CI,CI)
+		dtype="card" if dire in CARD_DIRES else "diag"
+		# lvls=LVLS_CARD if dire in CARD_DIRES else LVLS_DIAG
+		plotcount_from_level={lvl:get_plots(start_pos,stepcount_into[dtype][lvl],rocks,inp.shape) for lvl in levels_from_dtype[dtype]}
+		# print(plotcount_from_level)
+		for lvl,plotcount in plotcount_from_level.items():
+			par=pcomb(parity_from_level[lvl],PARITY)
+			sc=stepcount_into[dtype][lvl]
+			pc=plotcount[par]
+			fc=fieldcount[dtype][lvl]
+			val=pc*fc
+			# if lvl==1:
+			print(f"{dire=},{start_pos=},{sc=},{lvl=},{dtype=},{par=},{pc=},{fc=},{val=}")
+			result+=val
 
-	# EtoN: East corner and everything north above.
-	start_pos_from_quadrant={
-		"EtoN":((LI, 0),(CI, 0)),
-		"NtoW":((LI,LI),(LI,CI)),
-		"WtoS":((0 ,LI),(CI,LI)),
-		"StoE":((0 , 0),(0 ,CI)),
-	}
 
-	full_plots=get_plots(center_start_pos,steps_inside["S"],rocks,(DIM,DIM))
-	# for i in range(40):
-	# 	full_plots=get_plots(center_start_pos,i,rocks,(DIM,DIM))
-	# 	print(i,full_plots)
+	print(f"ANSWER: {result}")
+	# 632421646069917 to low (from try 1)
+	# 632421658207872 to hi  (from this try)
 
-	# return
-
-	for quadrant,(start_pos_diag,start_pos_cardinal) in start_pos_from_quadrant.items():
-		plots[quadrant]={}
-		plots[quadrant]["C"]=get_plots(start_pos_cardinal,steps_inside["C"],rocks,(DIM,DIM))
-
-		plots[quadrant]["A"]=get_plots(start_pos_diag,steps_inside["A"],rocks,(DIM,DIM))
-
-		if STATE!=ON_EDGE:
-			plots[quadrant]["B"]=get_plots(start_pos_diag,steps_inside["B"],rocks,(DIM,DIM))
-		else:
-			plots[quadrant]["B"]=(0,0)
-
-		if STATE==INSIDE:
-			plots[quadrant]["I"]=get_plots(start_pos_cardinal,steps_inside["I"],rocks,(DIM,DIM))
-		else:
-			plots[quadrant]["I"]=(0,0)
-
-	QUADCNT=4
-
-	# Start field.
-	result=full_plots[pcomb(parity["S"],PARITY)]
-
-	result+=QUADCNT*count_per_quadrant["Feven"]*full_plots[EVEN]
-	result+=QUADCNT*count_per_quadrant["Fodd"]*full_plots[ODD]
-
-	for quadrant in start_pos_from_quadrant:
-		result+=plots[quadrant]["C"][pcomb(parity["C"],PARITY)]
-		for field in "ABI":
-			result+=plots[quadrant][field][pcomb(parity[field],PARITY)]*count_per_quadrant[field]
-
-	print(f"{DIM=},{total_steps=}")
-	print(f"{steps_inside=}")
-	print(f"{count_non_center_fields=}")
-	print(f"{count_per_quadrant=}")
-	print(f"{PARITY=},{parity=}")
-	print(f"{full_plots=}")
-	print(f"{plot_count=}")
-	for card,plot in plots.items():
-		print(card,plot)
-
-	print(f"ANSWER: {result}, state: {STATE}")
-	# 632421646069917 is too low
-
-def csum_odd(n):
-	n-=1-(n%2)
-	term_count=((n+1)//2)
-	return term_count**2
-	# return csum(term_count)+csum(term_count-1)
-
-def csum_even(n):
-	n=(n//2)*2
-	term_count=n//2
-	return term_count*(term_count+1)
-	# return csum(term_count+1)-1+csum(term_count-1)
-
-def csum(n):
-	return (n*(n+1))/2
-
-def inv(parity):
-	return 1-parity
 
 def pcomb(*parities):
 	res=0
@@ -209,7 +174,28 @@ def pcomb(*parities):
 		res+=parity
 	return res%2
 
+def csum_odd(n):
+	n-=1-(n%2)
+	term_count=((n+1)//2)
+	return term_count**2
+
+def csum_even(n):
+	n=(n//2)*2
+	term_count=n//2
+	return term_count*(term_count+1)
+
+def csum(n):
+	return (n*(n+1))/2
+
+
 def get_plots(start_pos,steps,rocks,shape):
+	if steps<0:
+		return (0,0)
+	if steps==0:
+		start_parity=(start_pos[X]+start_pos[Y])%2
+		result=[0,0]
+		result[start_parity]=1
+		return result
 	old_poss={start_pos}
 	rest_poss=set()
 	new_poss=set()
@@ -239,6 +225,7 @@ def get_plots(start_pos,steps,rocks,shape):
 		if (rest_pos[X]+rest_pos[Y])%2==0:
 			even_count+=1
 		else:
+			# print(f"ODD: {rest_pos}")
 			odd_count+=1
 	return even_count,odd_count
 
