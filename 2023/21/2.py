@@ -28,39 +28,102 @@ def main():
 		io=[
 			# (6,16),
 			# (10,50),
-			(50,1594),
-			(100,6536),
-			(500,167004),
-			(1000,668697),
-			(5000,16733044),
+			# (50,1594),
+			# (100,6536),
+			50,
+			100,
+			500,
+			1000,
+			5000,
 		]
 	else:
-		io=[(26501365,None)]
+		io=[
+			50,
+			500,
+			1000,
+			26501365,
+		]
 
 
-	with open("example1.input" if "e" in sys.argv else "data.input") as f:
-		inp=np.array([list(x) for x in f.read().split("\n")])
+	with open("custom.input" if "e" in sys.argv else "data.input") as f:
+		lines=f.read().split("\n")
+		inp=np.array([list(x) for x in lines])
 
 	IDX=0
+	if "i" in sys.argv:
+		IDX=int(sys.argv[-1])
+	total_stepcount=io[IDX]
+	plot_count     =None
 
-	total_stepcount=io[IDX][0]
-	plot_count     =io[IDX][1]
-
-
-	rk=np.nonzero(inp=="#")
-	rocks={x for x in zip(*rk)}
-
-	# print(get_plots((0,0),5,rocks,inp.shape))
-	# return
-	# arr=np.zeros(inp.shape)
-	# arr[rk]=1
-	# arr[start]=2
 
 	# ASSUME: Field is a square with odd length (DIM%2==1).
 	DIM=inp.shape[0]
 	# ASSUME: Start pos is in center of field.
 	start=(DIM//2,DIM//2)
 	# ASSUME: first, middle and last row/col are without rocks.
+
+	# print(rk)
+
+	if "x" in sys.argv:
+		arr=inp.copy()
+		arr[start[X],:]="."
+		arr[:,start[Y]]="."
+		rk=np.nonzero(arr=="#")
+		rocks={x for x in zip(*rk)}
+		radius=(total_stepcount-(DIM//2))//DIM
+		big_size=((radius+1)*2)+1
+		print(f"{big_size=}")
+		arr=np.zeros(arr.shape)
+		arr[rk]=1
+		big_arr=np.tile(arr,(big_size,big_size))
+		start_pos_big=big_arr.shape[X]//2,big_arr.shape[Y]//2
+		big_arr_rk=np.nonzero(big_arr)
+		big_arr_rocks={x for x in zip(*big_arr_rk)}
+		plot_count=get_plots(start_pos_big,total_stepcount,big_arr_rocks,big_arr.shape)[total_stepcount%2]
+		# plot_count=get_plots(start_pos_big,total_stepcount,big_arr_rocks,big_arr.shape)
+		# plt.imshow(big_arr)
+		# plt.imshow(arr)
+		# plt.show()
+		# return
+	else:
+		rk=np.nonzero(inp=="#")
+		rocks={x for x in zip(*rk)}
+
+	# print(f"{radius=}")
+	# return
+
+
+
+	# print(DIM*DIM*big_size*big_size*4/1000000)
+	# print(inp.shape*big_size)
+
+	# big_arr=np.zeros((DIM*big_size,DIM*big_size),dtype=np.int8)
+
+	# for dx in range(DIM):
+	# 	for dy in range(DIM):
+	# 		big_arr[(DIM*dx):(DIM*(dx+1)),(DIM*dy):(DIM*(dy+1))]=arr
+
+	# print(big_arr.shape)
+
+	# big_arr[start_pos_big]=2
+
+	# print(f"{plot_count=}")
+	# return
+	# plot_count
+
+	# max_steps=big_arr.shape[X]//2
+
+
+
+	# return
+
+	# return
+	# print(get_plots((0,0),5,rocks,inp.shape))
+	# return
+	# arr=np.zeros(inp.shape)
+	# arr[rk]=1
+	# arr[start]=2
+
 
 	stepcount_middle_to_next={}
 	stepcount_middle_to_next["card"]=DIM-start[X]
@@ -74,6 +137,7 @@ def main():
 
 	print(f"{DIM=}")
 	print(f"{total_stepcount=}")
+
 	print(f"{PARITY=}")
 	print(f"{plot_count=}")
 	# print(f"{stepcount_middle_to_next_card=}")
@@ -92,11 +156,11 @@ def main():
 	#
 	# stepcoun t_into_diag_LVL={lvl:total_stepcount-stepcount_middle_to_next_diag-(fieldstepcount_to_diag_LVL[lvl]*DIM) for lvl in LVLS_DIAG}
 
-	print(f"{stepcount_into['card'][1]=}")
-	print(f"{stepcount_into['card'][2]=}")
-	print(f"{stepcount_into['diag'][0]=}")
-	print(f"{stepcount_into['diag'][1]=}")
-	print(f"{stepcount_into['diag'][2]=}")
+	# print(f"{stepcount_into['card'][1]=}")
+	# print(f"{stepcount_into['card'][2]=}")
+	# print(f"{stepcount_into['diag'][0]=}")
+	# print(f"{stepcount_into['diag'][1]=}")
+	# print(f"{stepcount_into['diag'][2]=}")
 
 	parity_field_lvl1=(fieldstepcount["card"][1]+1)%2
 	print(f"{parity_field_lvl1=}")
@@ -142,11 +206,11 @@ def main():
 	PARITIES=[EVEN,ODD]
 	for par in PARITIES:
 
-		print(f"{par=},{plots_full[par]=},{full_count_from_parity[par]=}")
+		print(f"With parity {par} there are {full_count_from_parity[par]} full fields with {plots_full[par]} plots each.")
 		result+=plots_full[par]*full_count_from_parity[par]
 
 	for dire,start_pos in start_pos_from_dire.items():
-		print()
+		# print()
 
 		dtype="card" if dire in CARD_DIRES else "diag"
 		# lvls=LVLS_CARD if dire in CARD_DIRES else LVLS_DIAG
@@ -159,13 +223,14 @@ def main():
 			fc=fieldcount[dtype][lvl]
 			val=pc*fc
 			# if lvl==1:
-			print(f"{dire=},{start_pos=},{sc=},{lvl=},{dtype=},{par=},{pc=},{fc=},{val=}")
+			# print(f"{dire=},{start_pos=},{sc=},{lvl=},{dtype=},{par=},{pc=},{fc=},{val=}")
 			result+=val
 
 
 	print(f"ANSWER: {result}")
 	# 632421646069917 to low (from try 1)
 	# 632421658207872 to hi  (from this try)
+
 
 
 def pcomb(*parities):
