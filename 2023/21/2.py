@@ -22,14 +22,14 @@ NW=7
 
 
 def main():
-	vals=[[51,-20],[53,-20],[55,-20],[57,-20],[59,28],[61,28],[63,28],[65,28],[67,28],[69,28],[71,28],[73,-36],[75,-36],[77,-36],[79,-36],[81,-36],[83,-36],[85,44],[87,44],[89,44],[91,44],[93,44],[95,44],[97,44],[99,-52],[101,-52],[103,-52],[105,-52],[107,-52],[109,-52],[111,60],[113,60],[115,60],[117,60],[119,60],[121,60],[123,60],[125,-68],[127,-68],[129,-68],[131,-68],[133,-68],[135,-68],[137,76],[139,76],[141,76],[143,76],[145,76],[147,76],[149,76],[151,-84],[153,-84],[155,-84],[157,-84],[159,-84],[161,-84],[163,92],[165,92],[167,92],[169,92],[171,92],[173,92],[175,92],[177,-100],[179,-100],[181,-100],[183,-100],[185,-100],[187,-100],[189,108],[191,108],[193,108],[195,108],[197,108],[199,108],[201,108],[203,-116],[205,-116],[207,-116],[209,-116],[211,-116],[213,-116],[215,124],[217,124],[219,124],[221,124],[223,124],[225,124],[227,124],[229,-132],[231,-132],[233,-132],[235,-132],[237,-132],[239,-132],[241,140],[243,140],[245,140],[247,140],[249,140],[251,140],[253,140],[255,-148],[257,-148],[259,-148],[261,-148],[263,-148],[265,-148],[267,156],[269,156],[271,156],[273,156],[275,156],[277,156],[279,156],[281,-164],[283,-164],[285,-164],[287,-164],[289,-164],[291,-164],[293,172],[295,172],[297,172],[299,172],[301,172],[303,172],[305,172],[307,-180],[309,-180],[311,-180],[313,-180],[315,-180],[317,-180],[319,188],[321,188],[323,188],[325,188],[327,188],[329,188],[331,188],[333,-196],[335,-196],[337,-196],[339,-196],[341,-196],[343,-196],[345,204],[347,204],[349,204],[351,204],[353,204],[355,204],[357,204],[359,-212],[361,-212],[363,-212],[365,-212],[367,-212],[369,-212],[371,220],[373,220],[375,220],[377,220],[379,220],[381,220],[383,220],[385,-228],[387,-228],[389,-228],[391,-228],[393,-228],[395,-228],[397,236],[399,236],[401,236],[403,236],[405,236],[407,236],[409,236],[411,-244],[413,-244],[415,-244],[417,-244],[419,-244],[421,-244],[423,252],[425,252],[427,252],[429,252],[431,252],[433,252],[435,252],[437,-260],[439,-260],[441,-260],[443,-260],[445,-260],[447,-260],[449,268],[451,268],[453,268],[455,268],[457,268],[459,268],[461,268],[463,-276],[465,-276],[467,-276],[469,-276],[471,-276],[473,-276],[475,284],[477,284],[479,284],[481,284],[483,284],[485,284],[487,284],[489,-292],[491,-292],[493,-292],[495,-292],[497,-292],[499,-292],[501,300],[503,300],[505,300],[507,300],[509,300],[511,300],[513,300],[515,-308],[517,-308],[519,-308],[521,-308],[523,-308],[525,-308],[527,316],[529,316],[531,316],[533,316],[535,316],[537,316],[539,316],[541,-324],[543,-324],[545,-324],[547,-324],[549,-324],]
-	vals=np.array(vals,dtype=float)
-	vals[:,1]=vals[:,0]/vals[:,1]
-	# print(vals[:,1])
 
-	plt.plot(vals[:,0],vals[:,1])
-	plt.show()
-	return
+	# vals=np.array(vals,dtype=float)
+	# vals[:,1]=vals[:,0]/vals[:,1]
+	# # print(vals[:,1])
+
+	# plt.plot(vals[:,0],vals[:,1])
+	# plt.show()
+	# return
 	# if "e" in sys.argv:
 	# 	io=[
 	# 	]
@@ -78,12 +78,16 @@ def main():
 	test_sim_vs_fast=True
 	if test_sim_vs_fast:
 		# for step_count in [50,51,52,53,500,501,502,503,1000,1001,1002,1003]:
-		for step_count in range(51,551,2):
-			rs=gp("custom","sim",step_count,inputs)
-			rf,_=gp("custom","fast",step_count,inputs)
-			print(f"Tested custom with {step_count} steps. Sim: {rs}, fast: {rf}. Diff: {rf-rs}.")
+		# for step_count in range(4,176,2):
+		for step_count in range(151,176,1):
+			rs,plots_s,dim_s=gp("custom","sim",step_count,inputs)
+			rf,plots_f,dim_f=gp("custom","fast",step_count,inputs)
+			plot_plots([plots_s,plots_f[NE][2]],[dim_s,dim_f])
+			return
+
+			# print(f"Tested custom with {step_count} steps. Sim: {rs}, fast: {rf}. Diff: {(rf-rs)/13}.")
 			# x.append()
-		# return
+		return
 		infos={}
 		for step_count in range(451,551,2):
 		# for step_count in [500,501,502,503]:
@@ -111,7 +115,24 @@ def main():
 	# 4
 	# 28
 
-
+def plot_plots(plotss,dims):
+	_,axs=plt.subplots(ncols=len(plotss),figsize=(20,10))
+	for plots,ax,dim in zip(plotss,axs,dims):
+		arr=np.zeros((dim,dim))
+		# print(dim)
+		plotarr=np.array(list(plots))
+		if dim>100:
+			arr[arr.shape[X]//2,arr.shape[Y]//2]=3
+			arr[:,0::13]=-1
+			arr[:,12::13]=-1
+			arr[0::13,:]=-1
+			arr[12::13,:]=-1
+		if plotarr.shape[0]>0:
+			arr[plotarr[:,0],plotarr[:,1]]+=2
+		if dim>100:
+			arr=arr[arr.shape[X]//2-50:arr.shape[X]//2+13,-50:]
+		ax.imshow(arr)
+	plt.show()
 
 	# 632421646069917 to low (from try 1)
 	# 632421658207872 to hi  (from this try)
@@ -136,7 +157,15 @@ def gp_ext_sim(inp,total_stepcount):
 	start_pos_big=big_arr.shape[X]//2,big_arr.shape[Y]//2
 	big_arr_rk=np.nonzero(big_arr)
 	big_arr_rocks={x for x in zip(*big_arr_rk)}
-	return len(get_plots(start_pos_big,total_stepcount,big_arr_rocks,big_arr.shape[X])[total_stepcount%2])
+	plots=get_plots(start_pos_big,total_stepcount,big_arr_rocks,big_arr.shape[X])[total_stepcount%2]
+	# print()
+	# for p in plots:
+	# pll=np.array(list(plots))
+	# big_arr[pll[:,0],pll[:,1]]=2
+	# plt.imshow(big_arr)
+	# plt.show()
+	# exit()
+	return len(plots),plots,big_arr.shape[X]
 
 
 def gp_ext_fast(inp,total_stepcount):
@@ -176,7 +205,7 @@ def gp_ext_fast(inp,total_stepcount):
 	#
 	# stepcoun t_into_diag_LVL={lvl:total_stepcount-stepcount_middle_to_next_diag-(fieldstepcount_to_diag_LVL[lvl]*DIM) for lvl in LVLS_DIAG}
 
-	# print(fieldstepcount)
+	# print(f"{fieldstepcount['card'][1]=}")
 	# print(f"{stepcount_into['card'][1]=}")
 	# print(f"{stepcount_into['card'][2]=}")
 	# print(f"{stepcount_into['diag'][0]=}")
@@ -200,7 +229,7 @@ def gp_ext_fast(inp,total_stepcount):
 		ODD :(csum_odd (full_radius)*4),
 	}
 	# print(f"{full_radius=}")
-	# print(f"{full_count_from_parity=}")
+	print(f"{full_count_from_parity=}")
 	# return
 
 	CARD_DIRES={NO,EA,SO,WE}
@@ -209,7 +238,7 @@ def gp_ext_fast(inp,total_stepcount):
 	fieldcount["card"]={lvl:1 for lvl in levels_from_dtype["card"]}
 	fieldcount["diag"]={lvl:fieldstepcount["card"][1]+1-lvl for lvl in levels_from_dtype["diag"]}
 
-	# print(f"{fieldcount=}")
+	print(f"{fieldcount=}")
 
 	start_pos_from_dire={
 		NO:(DIM-1 ,DIM//2),
@@ -230,18 +259,23 @@ def gp_ext_fast(inp,total_stepcount):
 		# print(f"With parity {par} there are {full_count_from_parity[par]} full fields with {plots_full[par]} plots each.")
 		result+=plots_full[par]*full_count_from_parity[par]
 
-	info=[]
-
+	# info=[]
+	plots={}
 	for dire,start_pos in start_pos_from_dire.items():
 		# print()
 
 		dtype="card" if dire in CARD_DIRES else "diag"
 
-		plotcount_from_level={
+		plots_from_level={
 			lvl:[
-				len(plots) for plots in get_plots(start_pos,stepcount_into[dtype][lvl],rocks,DIM)
+				plots for plots in get_plots(start_pos,stepcount_into[dtype][lvl],rocks,DIM)
 			] for lvl in levels_from_dtype[dtype]
 		}
+		plotcount_from_level={
+			lvl:[len(p) for p in plots_from_level[lvl]]
+			for lvl in levels_from_dtype[dtype]
+		}
+
 
 		# print(plotcount_from_level)
 		for lvl,plotcount in plotcount_from_level.items():
@@ -250,23 +284,26 @@ def gp_ext_fast(inp,total_stepcount):
 			pc=plotcount[par]
 			fc=fieldcount[dtype][lvl]
 			val=pc*fc
+			plots_from_level[lvl]=plots_from_level[lvl][par]
 			# if lvl==1:
-			info.append({
-				"dire":dire,
-				"start_pos":start_pos,
-				"sc":sc,
-				"lvl":lvl,
-				"dtype":dtype,
-				"par":par,
-				"pc":pc,
-				"fc":fc,
-				"val":val,
-			})
+			# info.append({
+			# 	"dire":dire,
+			# 	"start_pos":start_pos,
+			# 	"sc":sc,
+			# 	"lvl":lvl,
+			# 	"dtype":dtype,
+			# 	"par":par,
+			# 	"pc":pc,
+			# 	"fc":fc,
+			# 	"val":val,
+			# })
 
 			# print(f"{dire=},{str(start_pos):10},{sc=:3},{lvl=},{dtype=},{par=},{pc=:5},{fc=:5},{val=:6}")
 			# print(f"{par=}")
 			result+=val
-	return result,info
+
+		plots[dire]=plots_from_level
+	return result,plots,DIM
 
 
 def get_plots(start_pos,steps,rocks,DIM):
@@ -336,3 +373,6 @@ def csum(n):
 	return (n*(n+1))/2
 
 main()
+
+
+# vals=[[51,-20],[53,-20],[55,-20],[57,-20],[59,28],[61,28],[63,28],[65,28],[67,28],[69,28],[71,28],[73,-36],[75,-36],[77,-36],[79,-36],[81,-36],[83,-36],[85,44],[87,44],[89,44],[91,44],[93,44],[95,44],[97,44],[99,-52],[101,-52],[103,-52],[105,-52],[107,-52],[109,-52],[111,60],[113,60],[115,60],[117,60],[119,60],[121,60],[123,60],[125,-68],[127,-68],[129,-68],[131,-68],[133,-68],[135,-68],[137,76],[139,76],[141,76],[143,76],[145,76],[147,76],[149,76],[151,-84],[153,-84],[155,-84],[157,-84],[159,-84],[161,-84],[163,92],[165,92],[167,92],[169,92],[171,92],[173,92],[175,92],[177,-100],[179,-100],[181,-100],[183,-100],[185,-100],[187,-100],[189,108],[191,108],[193,108],[195,108],[197,108],[199,108],[201,108],[203,-116],[205,-116],[207,-116],[209,-116],[211,-116],[213,-116],[215,124],[217,124],[219,124],[221,124],[223,124],[225,124],[227,124],[229,-132],[231,-132],[233,-132],[235,-132],[237,-132],[239,-132],[241,140],[243,140],[245,140],[247,140],[249,140],[251,140],[253,140],[255,-148],[257,-148],[259,-148],[261,-148],[263,-148],[265,-148],[267,156],[269,156],[271,156],[273,156],[275,156],[277,156],[279,156],[281,-164],[283,-164],[285,-164],[287,-164],[289,-164],[291,-164],[293,172],[295,172],[297,172],[299,172],[301,172],[303,172],[305,172],[307,-180],[309,-180],[311,-180],[313,-180],[315,-180],[317,-180],[319,188],[321,188],[323,188],[325,188],[327,188],[329,188],[331,188],[333,-196],[335,-196],[337,-196],[339,-196],[341,-196],[343,-196],[345,204],[347,204],[349,204],[351,204],[353,204],[355,204],[357,204],[359,-212],[361,-212],[363,-212],[365,-212],[367,-212],[369,-212],[371,220],[373,220],[375,220],[377,220],[379,220],[381,220],[383,220],[385,-228],[387,-228],[389,-228],[391,-228],[393,-228],[395,-228],[397,236],[399,236],[401,236],[403,236],[405,236],[407,236],[409,236],[411,-244],[413,-244],[415,-244],[417,-244],[419,-244],[421,-244],[423,252],[425,252],[427,252],[429,252],[431,252],[433,252],[435,252],[437,-260],[439,-260],[441,-260],[443,-260],[445,-260],[447,-260],[449,268],[451,268],[453,268],[455,268],[457,268],[459,268],[461,268],[463,-276],[465,-276],[467,-276],[469,-276],[471,-276],[473,-276],[475,284],[477,284],[479,284],[481,284],[483,284],[485,284],[487,284],[489,-292],[491,-292],[493,-292],[495,-292],[497,-292],[499,-292],[501,300],[503,300],[505,300],[507,300],[509,300],[511,300],[513,300],[515,-308],[517,-308],[519,-308],[521,-308],[523,-308],[525,-308],[527,316],[529,316],[531,316],[533,316],[535,316],[537,316],[539,316],[541,-324],[543,-324],[545,-324],[547,-324],[549,-324],]
