@@ -49,6 +49,9 @@ def GET_SESSION_ID():
 
 class Ui:
 	def __init__(self):
+		print("First year then day then commands. Possible commands are:")
+		for cmd in Ui.Cmd:
+			print(f"{cmd.value:5}: {cmd.name}")
 		self.queue=sys.argv[1:]
 		self.mgr=None
 		self.act={
@@ -61,6 +64,7 @@ class Ui:
 			Ui.Cmd.setDryRun:lambda:self.mgr.set_dry_run(),
 			Ui.Cmd.exit:lambda:None,
 		}
+
 
 	def get_input(self,msg,as_int=False):
 		from_queue=len(self.queue)!=0
@@ -89,8 +93,8 @@ class Ui:
 			try:
 				cmd=Ui.Cmd(self.get_input(" ")[0])
 				self.act[cmd]()
-			except Exception as exc:
-				print(exc)
+			except Exception:
+				traceback.print_exc()
 
 
 	class Cmd(Enum):
@@ -129,6 +133,7 @@ class AocManager:
 	def download_data(self):
 		session_id=GET_SESSION_ID()
 		os.environ["AOC_SESSION"]=session_id
+		dir_path=self.dir_path.resolve()
 		print(f"AocManager: Download data with session-id \"{session_id}\".")
 		if not self.dry_run:
 			puzzle=Puzzle(year=self.year,day=self.day)
