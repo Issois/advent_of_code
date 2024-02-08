@@ -2,9 +2,9 @@ try:
 	import datetime
 	import pathlib
 	import os
+	import traceback
 	from aocd.models import Puzzle
 	import sys
-	import traceback
 	import shlex
 	from enum import Enum
 
