@@ -41,28 +41,97 @@ def main():
 	hi=np.max(blocks[:,:,:],axis=1)
 
 	# print(lo[:,Z])
-
-	loz_grp=[[] for _ in range(maximum[Z])]
+	# print(maximum)
+	loz_grp=[[] for _ in range(maximum[Z]+1)]
 	for bl_idx,loz in enumerate(lo[:,Z]):
 		# if loz not in loz_grp:
 			# loz_grp[loz]=[]
+		# print(loz)
 		loz_grp[loz].append(bl_idx)
 
-	print(loz_grp)
+	# print(blocks[:,:,A])
+
+	delta=blocks[:,B,:]-blocks[:,A,:]
+	# print(delta)
+	# delta[delta!=0]=
+	# idx=0
+
+	full_blocks=[set() for _ in range(blocks.shape[0])]
+
+	for idx in range(blocks.shape[0]):
+
+		abs_delta=np.abs(delta)
+		orientation=np.nonzero(delta)[1]
+		# print(orientation)
+		# print(abs_delta)
+		# print(abs_delta[idx,orientation[idx]])
+		# locs=set()
+		for around_block in range(abs_delta[idx,orientation[idx]]+1):
+			loc=blocks[idx,A,:].copy()
+			loc[orientation[idx]]+=(delta[idx,orientation[idx]]/abs_delta[idx,orientation[idx]])*around_block
+			# print(loc)
+			full_blocks[idx].add(tuple(loc[XY]))
+		# print(locs)
+
+	# print(full_blocks)
+
+
+	# return
 
 
 	supports={}
 	is_supported_by={}
 
-	field=np.zeros((*maximum[XY],2),dtype=int)
+	field=np.zeros((2,*maximum[XY]),dtype=int)
 
-	field[:,:,BLK_IDX]=-1
+	field[BLK_IDX,:,:]=-1
 
 
 	for height,block_indices in enumerate(loz_grp):
 		if len(block_indices)>0:
 			for bidx in block_indices:
-				print(height,blocks[bidx])
+				# print(height,blocks[bidx])
+				# block=blocks[bidx]
+				max_h=-1
+
+				for subblock in full_blocks[bidx]:
+					print(subblock)
+					print(field[:,*subblock])
+					return
+					field_h,field_bidx=field[:,subblock]
+					print(field_h,field_bidx)
+					if field_h>max_h:
+						max_bidxs={field_bidx}
+						max_h=field_h
+					elif field_h==max_h:
+						max_bidxs.add(field_bidx)
+
+				print(max_bidxs)
+				print(max_h)
+				return
+
+
+
+
+				# delta=block[A,:]-block[B,:]
+				# delta[delta!=0]=1
+				# orientation=np.nonzero(delta)[0]
+				# if len(orientation)==0:
+				# 	orientation=Z
+				# else:
+				# 	orientation=orientation[0]
+				# locs=[]
+				# if orientation==Z:
+				# 	locs.append(block[A,(X,Y)])
+
+				# print(locs)
+
+
+				# Check if dz or dxy
+				# print(orientation)
+
+
+				# return
 
 
 	# print(field)
