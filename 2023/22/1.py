@@ -51,7 +51,46 @@ def main():
 
 	# print(blocks[:,:,A])
 
+	for idx,lg in enumerate(loz_grp):
+		print(idx,lg)
+	return
+
+
 	delta=blocks[:,B,:]-blocks[:,A,:]
+	abs_delta=np.abs(delta)
+
+	orientation=np.zeros(blocks.shape[0],dtype=int)-1
+
+	for idx,row in enumerate(delta):
+		nz=np.nonzero(row)[0]
+		dim=len(nz)
+		if dim==0:
+			print(f"Row {idx+1}: Dim==0, set to 1->Z")
+			orientation[idx]=Z
+		elif dim==1:
+			orientation[idx]=nz[0]
+		else:
+			print(f"Row {idx+1}: Dim==2 is invalid!")
+			return
+
+
+	# for idx,ori in enumerate(orientation[:50]):
+	# 	print(idx,ori)
+
+	# return
+
+
+
+	# print(delta[22])
+	# print(np.nonzero(delta[22]))
+	# print(np.nonzero(delta[22])[1])
+	# return
+	# orientation=np.nonzero(delta)[1]
+	# for delt in delta:
+		# print(delt)
+	# for idx,ori in enumerate(orientation[:50]):
+		# print(idx,ori,delta[idx])
+	# print(abs_delta)
 	# print(delta)
 	# delta[delta!=0]=
 	# idx=0
@@ -60,17 +99,21 @@ def main():
 
 	for idx in range(blocks.shape[0]):
 
-		abs_delta=np.abs(delta)
-		orientation=np.nonzero(delta)[1]
-		# print(orientation)
 		# print(abs_delta)
 		# print(abs_delta[idx,orientation[idx]])
 		# locs=set()
-		for around_block in range(abs_delta[idx,orientation[idx]]+1):
-			loc=blocks[idx,A,:].copy()
-			loc[orientation[idx]]+=(delta[idx,orientation[idx]]/abs_delta[idx,orientation[idx]])*around_block
-			# print(loc)
-			full_blocks[idx].add(tuple(loc[XY]))
+		start_block=blocks[idx,A,:]
+		# print(idx,delta[idx,orientation[idx]],abs_delta[idx,orientation[idx]])
+		# direction=delta[idx,orientation[idx]]/abs_delta[idx,orientation[idx]]
+		# dir_vec=np.zeros((3))
+		# dir_vec[orientation]=1
+		for full_block_idx in range(abs_delta[idx,orientation[idx]]+1):
+			# print(full_block_idx)
+			# print(direction)
+			block=start_block.copy()
+			block[orientation[idx]]+=full_block_idx
+			# print(block)
+			full_blocks[idx].add(tuple(block[XY]))
 		# print(locs)
 
 	# print(full_blocks)
@@ -79,13 +122,17 @@ def main():
 	# return
 
 
-	supports={}
-	is_supported_by={}
+	supports={i:set() for i in range(-1,blocks.shape[0])}
+	is_supported_by={i:set() for i in range(-1,blocks.shape[0])}
 
-	field=np.zeros((2,*maximum[XY]),dtype=int)
+	field=np.zeros((2,*maximum[XY]+1),dtype=int)
 
 	field[BLK_IDX,:,:]=-1
-
+	# field[BLK_IDX,0,0]=10
+	# field[BLK_IDX,1,0]=20
+	# print(field)
+	# print(full_blocks)
+	can_be_deleted=set()
 
 	for height,block_indices in enumerate(loz_grp):
 		if len(block_indices)>0:
@@ -94,105 +141,53 @@ def main():
 				# block=blocks[bidx]
 				max_h=-1
 
+
 				for subblock in full_blocks[bidx]:
-					print(subblock)
-					print(field[:,*subblock])
-					return
-					field_h,field_bidx=field[:,subblock]
-					print(field_h,field_bidx)
+					# print(subblock)
+					last_x,last_y=subblock
+					# print()
+					# return
+					field_bidx,field_h=field[:,last_x,last_y]
+					# print(field_h,field_bidx)
 					if field_h>max_h:
-						max_bidxs={field_bidx}
+						supporting_bidxs={field_bidx}
 						max_h=field_h
 					elif field_h==max_h:
-						max_bidxs.add(field_bidx)
+						supporting_bidxs.add(field_bidx)
 
-				print(max_bidxs)
-				print(max_h)
-				return
+				# print(supporting_bidxs)
+				# print(max_h)
+				supports[bidx]|=supporting_bidxs
+				for supporting in supporting_bidxs:
+					is_supported_by[supporting].add(bidx)
 
+				if orientation[bidx]==Z:
 
+					field[:,last_x,last_y]=bidx,max_h+len(full_blocks[bidx])
+				else:
+					for subblock in full_blocks[bidx]:
+						field[:,subblock[X],subblock[Y]]=bidx,max_h+1
 
-
-				# delta=block[A,:]-block[B,:]
-				# delta[delta!=0]=1
-				# orientation=np.nonzero(delta)[0]
-				# if len(orientation)==0:
-				# 	orientation=Z
-				# else:
-				# 	orientation=orientation[0]
-				# locs=[]
-				# if orientation==Z:
-				# 	locs.append(block[A,(X,Y)])
-
-				# print(locs)
-
-
-				# Check if dz or dxy
-				# print(orientation)
-
-
+				# print(supports[bidx])
+				# print(field[CURR_H])
+				# print("######")
 				# return
+	for i in range(-1,blocks.shape[0]):
+		if len(supports[i])>1:
 
+			# print(f"{supports[i]} support {i}, they can be deleted.")
+			can_be_deleted|=supports[i]
+		if len(is_supported_by[i])==0:
+			# print(f"{i} supports nothing, it can be deleted.")
+			can_be_deleted|={i}
 
-	# print(field)
+	# print(can_be_deleted)
+	answer=len(can_be_deleted)
 
-	# block=blocks[0]
-	# print(blocks[:,:,X])
-	# lx=np.min(blocks[:,:,X],axis=1)
-	# print(lo)
-	# print(blocks[:,A,:])
-	# print(blocks[:1])
+	print(f"ANSWER: {answer}")
 
-	# blocks[:,:,X]-=13
-	# blocks[:,:,Y]+=15
-	# print(blocks)
+	# 582 too high.
 
-
-	# blocks[:,:,X]-=minimum[X]
-	# blocks[:,:,Y]-=minimum[Y]
-	# print(blocks[:,:,[X,Y]])
-	# print(minimum)
-	# print(minimum[[X,Y]])
-
-
-
-	# minimum=np.min(blocks[:,:,:],axis=(0,1))
-
-	# maximum[X]-=minimum[X]
-	# maximum[Y]-=minimum[Y]
-	# np.max(blocks[:,:,:],axis=(0,1))
-
-
-	# print(blocks)
-
-	# print(minimum)
-	# print(maximum)
-
-
-	# xmin=np.min(blocks[:,:,X])
-
-
-
-	# blocks_z=blocks[:,:,:-1]
-	# is_equal=(blocks_z[:,A,:]-blocks_z[:,B,:])==0
-	# # al=
-	# is_equal[np.all(is_equal,axis=1),Y]=False
-	# block_axis=1-np.nonzero(is_equal)[1]
-
-	# # print(al)
-	# # return
-	# print(blocks_z[0]-blocks_z[1])
-
-	# return
-
-	# arr=[]
-	# for line in inp:
-	# 	pass
-
-	# result=0
-	# print(f"ANSWER: {result}")
-
-# def collidesXY(blocks):
 
 
 
