@@ -40,7 +40,10 @@ def main():
 	lo=np.min(blocks[:,:,:],axis=1)
 	hi=np.max(blocks[:,:,:],axis=1)
 
-	# print(lo[:,Z])
+	# print(lo[:Z])
+	# print(lo)
+	# print(hi)
+	# return
 	# print(maximum)
 	loz_grp=[[] for _ in range(maximum[Z]+1)]
 	for bl_idx,loz in enumerate(lo[:,Z]):
@@ -51,9 +54,9 @@ def main():
 
 	# print(blocks[:,:,A])
 
-	for idx,lg in enumerate(loz_grp):
-		print(idx,lg)
-	return
+	# for idx,lg in enumerate(loz_grp):
+	# 	print(idx,lg)
+	# return
 
 
 	delta=blocks[:,B,:]-blocks[:,A,:]
@@ -95,7 +98,8 @@ def main():
 	# delta[delta!=0]=
 	# idx=0
 
-	full_blocks=[set() for _ in range(blocks.shape[0])]
+	# full_blocks=[set() for _ in range(blocks.shape[0])]
+	full_blocks=[[] for _ in range(blocks.shape[0])]
 
 	for idx in range(blocks.shape[0]):
 
@@ -113,8 +117,13 @@ def main():
 			block=start_block.copy()
 			block[orientation[idx]]+=full_block_idx
 			# print(block)
-			full_blocks[idx].add(tuple(block[XY]))
+			full_blocks[idx].append(tuple(block[XY]))
 		# print(locs)
+
+	# Check if start and of full blocks match the corresponding entry.
+	# for idx in range(blocks.shape[0]):
+
+	# return
 
 	# print(full_blocks)
 
@@ -122,8 +131,8 @@ def main():
 	# return
 
 
-	supports={i:set() for i in range(-1,blocks.shape[0])}
-	is_supported_by={i:set() for i in range(-1,blocks.shape[0])}
+	under={i:set() for i in range(-1,blocks.shape[0])}
+	over={i:set() for i in range(-1,blocks.shape[0])}
 
 	field=np.zeros((2,*maximum[XY]+1),dtype=int)
 
@@ -132,17 +141,17 @@ def main():
 	# field[BLK_IDX,1,0]=20
 	# print(field)
 	# print(full_blocks)
-	can_be_deleted=set()
+	blocks_that_can_be_deleted=set()
 
 	for height,block_indices in enumerate(loz_grp):
 		if len(block_indices)>0:
-			for bidx in block_indices:
-				# print(height,blocks[bidx])
-				# block=blocks[bidx]
+			for block_current in block_indices:
+				# print(height,blocks[block_current])
+				# block=blocks[block_current]
 				max_h=-1
 
 
-				for subblock in full_blocks[bidx]:
+				for subblock in full_blocks[block_current]:
 					# print(subblock)
 					last_x,last_y=subblock
 					# print()
@@ -150,43 +159,67 @@ def main():
 					field_bidx,field_h=field[:,last_x,last_y]
 					# print(field_h,field_bidx)
 					if field_h>max_h:
-						supporting_bidxs={field_bidx}
+						blocks_under={field_bidx}
 						max_h=field_h
 					elif field_h==max_h:
-						supporting_bidxs.add(field_bidx)
+						blocks_under.add(field_bidx)
 
-				# print(supporting_bidxs)
+				# print(blocks_under)
 				# print(max_h)
-				supports[bidx]|=supporting_bidxs
-				for supporting in supporting_bidxs:
-					is_supported_by[supporting].add(bidx)
+				under[block_current]|=blocks_under
+				for block_under in blocks_under:
+					over[block_under].add(block_current)
 
-				if orientation[bidx]==Z:
+				if orientation[block_current]==Z:
 
-					field[:,last_x,last_y]=bidx,max_h+len(full_blocks[bidx])
+					field[:,last_x,last_y]=block_current,max_h+len(full_blocks[block_current])
 				else:
-					for subblock in full_blocks[bidx]:
-						field[:,subblock[X],subblock[Y]]=bidx,max_h+1
+					for subblock in full_blocks[block_current]:
+						field[:,subblock[X],subblock[Y]]=block_current,max_h+1
 
 				# print(supports[bidx])
 				# print(field[CURR_H])
 				# print("######")
 				# return
-	for i in range(-1,blocks.shape[0]):
-		if len(supports[i])>1:
 
-			# print(f"{supports[i]} support {i}, they can be deleted.")
-			can_be_deleted|=supports[i]
-		if len(is_supported_by[i])==0:
-			# print(f"{i} supports nothing, it can be deleted.")
-			can_be_deleted|={i}
 
-	# print(can_be_deleted)
-	answer=len(can_be_deleted)
+	# print(over)
+	# print(under)
+
+	for block in range(-1,blocks.shape[0]):
+		# for block_over in over[block]:
+		# 	if block not in under[block_over]:
+		# 		print(f"ERROR {block} {block_over}")
+		# 	else:
+		# 		print(f"CORRC {block} {block_over}")
+
+		can_be_deleted=False
+
+		if len(over[block])==0:
+			print(f"DEL {block:4.0f}: It supports nothing, it can be deleted. (supported by {under[block]})")
+			can_be_deleted=True
+		else:
+			can_be_deleted=True
+			for block_over in over[block]:
+				# print(block_over)
+				if len(under[block_over])==1:
+					print(f"___ {block:4.0f}: Only {block} supports {block_over} so {block} can not be deleted.")
+					can_be_deleted=False
+					break
+			if can_be_deleted:
+				print(f"DEL {block:4.0f}: All blocks supported by {block} are supported by an additional block, {block} can be deleted.")
+				for block_over in over[block]:
+					print(f"  - {block:4.0f}: {block:4.0f} supports {block_over} which is supported by {under[block_over]}.")
+		if can_be_deleted:
+			blocks_that_can_be_deleted|={block}
+
+	answer=len(blocks_that_can_be_deleted)
 
 	print(f"ANSWER: {answer}")
 
-	# 582 too high.
+	# 582 is too high.
+	# 462 is too high.
+	# 448 is correct!
 
 
 
