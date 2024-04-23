@@ -182,119 +182,46 @@ def main():
 				# print("######")
 				# return
 
+	marks={-1:set()}
+	to_mark=list(over[-1])
+	to_mark_set=set(to_mark)
 
-	# First check all with none above.
+	counts={bid:0 for bid in all_block_ids}
+	counts[-1]=0
 
-	# root=Node(-1,None,[])
+	# x={1,2}
+	# y={1,3}
+	# print(x|y)
+	# print(x&y)
+	# print(x^y)
 
-	# to_build=[root]
-
-	# while len(to_build)>0:
-		# node=to_build.pop()
-		# children=[Node(bid,node.bid,[]) for bid in over[node.bid]]
-		# chi
-
-	# leaves=[block for block in all_block_ids if len(over[block])==0]
-
-
-
-	# tree={-1:{}}
-
-
-
-	falling_from_block={}
-	blocks_to_check=[-1]
-
-	while len(blocks_to_check)>0:
-		print(blocks_to_check)
-		block_to_check=blocks_to_check[0]
-		# print(block_to_check)
-		blocks_over=[bid for bid in over[block_to_check] if len(under[bid])==1]
-
-		pre_check=[bid for bid in blocks_over if bid not in falling_from_block]
-
-		if len(pre_check)>0:
-			blocks_to_check=pre_check+blocks_to_check
+	while len(to_mark)>0:
+		block_current=to_mark.pop(0)
+		print(f"Marking: {block_current} {to_mark}.")
+		to_mark_set.remove(block_current)
+		if under[block_current]<=set(marks.keys()):
+			marks[block_current]=set.intersection(*[{block_under}|marks[block_under] for block_under in under[block_current]])
+			for mark in marks[block_current]:
+				counts[mark]+=1
+			# print(f"Adding to mark: {over[block_current]}")
+			to_mark.extend([bid for bid in over[block_current] if bid not in to_mark_set])
+			to_mark_set|=over[block_current]
 		else:
-			falling_from_block[block_to_check]=0
-			for block_over in blocks_over:
-				falling_from_block[block_to_check]+=1+falling_from_block[block_over]
-			blocks_to_check.pop(0)
+			print(f"Not all parents have been marked yet. Appending again.")
+			to_mark.append(block_current)
+			to_mark_set.add(block_current)
 
-	for bid in all_block_ids:
-		if bid in falling_from_block:
-			print(bid,falling_from_block[bid])
-
-
-	# # blocks_to_check=
-
-	# for block_to_check in list(all_block_ids):
-	# 	if block_to_check not in falling_from_block:
-	# 		if len(over[block_to_check])==0:
-	# 			falling_from_block[block_to_check]=[0]
-	# 		else:
-	# 			falling_list=[None]
-	# 			for block_over in over[block_to_check]:
-	# 				# print(block_over)
-	# 				if len(under[block_over])==1:
-	# 					falling_list.append(block_over)
-
-	# 			falling_from_block[block_to_check]=falling_list
-
-
-
-
-	# print(leaves)
-
-
-
-	# print(over)
-	# print(under)
-
-	# blocks_that_can_be_deleted=set()
-	# for block in range(-1,blocks.shape[0]):
-	# 	# for block_over in over[block]:
-	# 	# 	if block not in under[block_over]:
-	# 	# 		print(f"ERROR {block} {block_over}")
-	# 	# 	else:
-	# 	# 		print(f"CORRC {block} {block_over}")
-
-	# 	can_be_deleted=False
-
-	# 	if len(over[block])==0:
-	# 		print(f"DEL {block:4.0f}: It supports nothing, it can be deleted. (supported by {under[block]})")
-	# 		can_be_deleted=True
-	# 	else:
-	# 		can_be_deleted=True
-	# 		for block_over in over[block]:
-	# 			# print(block_over)
-	# 			if len(under[block_over])==1:
-	# 				print(f"___ {block:4.0f}: Only {block} supports {block_over} so {block} can not be deleted.")
-	# 				can_be_deleted=False
-	# 				break
-	# 		if can_be_deleted:
-	# 			print(f"DEL {block:4.0f}: All blocks supported by {block} are supported by an additional block, {block} can be deleted.")
-	# 			for block_over in over[block]:
-	# 				print(f"  - {block:4.0f}: {block:4.0f} supports {block_over} which is supported by {under[block_over]}.")
-	# 	if can_be_deleted:
-	# 		blocks_that_can_be_deleted|={block}
-
+	# print(marks)
+	# print(counts)
 	answer=0
+	for bid in all_block_ids:
+		answer+=counts[bid]
+
+
 
 	print(f"ANSWER: {answer}")
 
-
-
-class Node:
-	def __init__(self,bid,parent,children):
-		self.bid=bid
-		self.parent=parent
-		self.children=children
-
-# class Tree:
-	# def __init__(self):
-		# pass
-
+	# 57770 is correct.
 
 
 
