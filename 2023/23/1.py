@@ -2,6 +2,7 @@
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
+import pprint
 
 FOREST=0
 PATH=1
@@ -25,6 +26,7 @@ DNAME={
 	EA:"EA",
 	SO:"SO",
 	WE:"WE",
+	PATH:"..",
 }
 
 OPPO={
@@ -33,6 +35,10 @@ OPPO={
 	NO:SO,
 	SO:NO,
 }
+
+FORW=1
+BAKW=-1
+ANYW=0
 
 
 def main():
@@ -109,27 +115,28 @@ def main():
 			graph[pel.id]=[]
 
 
-	pelids_checked=set()
 	# print(graph)
 	# return
 
-	npelids_to_check=set([pel_start.id])
+	npelids_to_check=[pel_start.id]
+	pelids_checked=set(npelids_to_check)
 
 	while len(npelids_to_check)>0:
-		npelid_current=npelids_to_check.pop()
+		npelid_current=npelids_to_check.pop(0)
 		npel_current=pel_from_pid[npelid_current]
 		# npel_current_neighbors=npelid_current.neighbors
 
 		for dire_nstart,npel_current_neighbor in npel_current.neighbors.items():
-			print(f"Starting from node at {npel_current.pos} in direction {DNAME[dire_nstart]}.")
+			# print(f"Starting from node at {npel_current.pos} in direction {DNAME[dire_nstart]}.")
 			if npel_current_neighbor.id not in pelids_checked:
 				edge_new=GraphEdge()
+				edge_new.distance=1
 
 				dire_current=dire_nstart
 
 				pel_current=npel_current_neighbor
 				while pel_current.id not in graph:
-					print(f"In direction {DNAME[dire_current]} to pos {pel_current.pos}.")
+					# print(f"In direction {DNAME[dire_current]} to pos {pel_current.pos}.")
 					# increas dist
 					edge_new.distance+=1
 					# add to checked
@@ -144,14 +151,15 @@ def main():
 					path_current=arr[tuple(pel_current.pos)]
 					if path_current==dire_next:
 						# This is a slope in walking direction.
-						if edge_new.direction=="none":
-							edge_new.direction="forward"
-						assert edge_new.direction!="backward","Edge contains forward and backward."
+						if edge_new.direction==ANYW:
+							edge_new.direction=FORW
+						assert edge_new.direction!=BAKW,f"path: {DNAME[path_current]} dire: {DNAME[dire_current]}  Edge contains backward and then forward. {pel_from_pid[npelid_current].pos} to {DNAME[dire_nstart]}"
 					elif path_current==OPPO[dire_current]:
 						# This is a slope against walking direction.
-						if edge_new.direction=="none":
-							edge_new.direction="backward"
-						assert edge_new.direction!="forward","Edge contains forward and backward."
+						if edge_new.direction==ANYW:
+							edge_new.direction=BAKW
+						if edge_new.direction==FORW
+						assert edge_new.direction!=FORW,f"path: {DNAME[path_current]} dire: {DNAME[dire_current]}  Edge contains forward and then backward. {pel_from_pid[npelid_current].pos} to {DNAME[dire_nstart]}"
 					dire_current=dire_next
 					pel_current=pel_neighbor_next
 
@@ -159,31 +167,67 @@ def main():
 				# print(pel_current)
 				edge_new.pelid_target=pel_current.id
 				# print(edge_new)
+				edge_reverse=GraphEdge()
+				edge_reverse.pelid_target=npelid_current
+				edge_reverse.distance=edge_new.distance
+				edge_reverse.direction=-edge_new.direction
 
-				return
-					# check dire
+				# Add edges to both nodes.
+				graph[npelid_current].append(edge_new)
+				graph[edge_new.pelid_target].append(edge_reverse)
+				# Add target node to check if not already.
+				if edge_new.pelid_target not in pelids_checked:
+					pelids_checked.add(edge_new.pelid_target)
+					npelids_to_check.append(edge_new.pelid_target)
 
 
-				pass
-
-		pelids_checked.add(npelid_current)
-
-
-	print(graph)
-
+	graph_mono={
+		npelid:[
+			edge for edge in edges if edge.direction>=0
+		] for npelid,edges in graph.items()
+	}
 
 
+	pprint.pprint(graph_mono)
+	print(f"start: {pel_start}, end: {pel_end}.")
 
-	answer=0
-	# print(f"ANSWER: {answer}")
+	# info={"max_len":-1}
+
+	# head=pel_start.id
+	# tail=set()
+	# tail=[]
+
+	def rec_search(head,tail,distance):
+		available_edges=[edge for edge in graph_mono[head] if edge.pelid_target not in tail]
+		if len(available_edges)==0:
+			# No more path left.
+			if head==pel_end.id:
+				print(head,tail,distance)
+				return distance
+		else:
+			dists=[]
+			for edge in available_edges:
+				# tail.add(head)
+				tail.append(head)
+				dists.append(rec_search(edge.pelid_target,tail,distance+edge.distance))
+				tail.pop(-1)
+			return max(dists)
+
+	answer=rec_search(pel_start.id,[],0)
+
+	print(f"ANSWER: {answer}")
+
+
+
+
 
 class GraphEdge:
 	def __init__(self):
 		self.pelid_target=None
 		self.distance=0
-		self.direction="none"
+		self.direction=ANYW
 	def __str__(self):
-		return f"To pel{self.pelid_target} {self.distance}m {self.direction}"
+		return f"To pel {self.pelid_target} {self.distance}m {self.direction}"
 	def __repr__(self):
 		return str(self)
 
