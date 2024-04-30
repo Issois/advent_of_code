@@ -211,8 +211,6 @@ class PathElement:
 		PathElement.NEXT_ID+=1
 		self.pos=pos
 		self.neighbors={}
-		# self.children=[]
-		# self.parents=[]
 	def __str__(self):
 		return f"pel{self.id}@{self.pos}"
 	def __repr__(self):
@@ -222,21 +220,6 @@ class PathElement:
 
 def is_in_bounds(pos,arr):
 	return 0<=pos[0]<arr.shape[0] and 0<=pos[1]<arr.shape[1]
-
-# def find_connection(context,nid,dire):
-# 	distance=1
-# 	pos_current=context["pos_from_node_id"][nid]
-# 	pos_next=pos_current+DIRE[dire]
-# 	available=(context["not_visited"]*context["arr"])>0
-
-# 	if is_in_bounds(pos_next,context["arr"]) and available[tuple(pos_next)]:
-# 		cell=context["arr"][tuple(pos_next)]
-# 		if cell==PATH:
-# 			pass
-# 		else
-
-
-
 
 
 main()
