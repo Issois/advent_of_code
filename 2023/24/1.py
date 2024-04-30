@@ -48,7 +48,7 @@ def main():
 
 
 	print(f"ANSWER: {result}")
-	# 25261 is correct!
+	# 25261 is correct.
 
 
 def intersection(h1,h2):
