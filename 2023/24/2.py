@@ -49,12 +49,13 @@ def main():
 			# k=mat_inv@arr[j,:,POS]
 			# print(k)
 
-			mat=np.vstack([arr[i,:,VEL],-arr[j,:,VEL]]).T
-			print(mat)
-			mat_inv=np.linalg.inv(mat)
+			# mat=np.vstack([arr[i,:,VEL],-arr[j,:,VEL]]).T
+			# print(mat)
+			# mat_inv=np.linalg.inv(mat)
 			# print(mat@mat_inv)
-			k=mat_inv@(arr[j,:,POS]-arr[i,:,POS])
-			print(k)
+			# k=mat_inv@(arr[j,:,POS]-arr[i,:,POS])
+			# print(k)
+			# print(mat)
 
 
 			# print(k1,k2)
