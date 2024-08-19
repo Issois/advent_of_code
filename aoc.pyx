@@ -3,12 +3,14 @@ try:
 	import pathlib
 	import os
 	import traceback
+	# pip install aocd
 	from aocd.models import Puzzle
 	import sys
 	import shlex
 	from enum import Enum
 
 	import base64
+	# pip install cryptography
 	from cryptography.fernet import Fernet
 except Exception:
 	traceback.print_exc()
