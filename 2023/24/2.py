@@ -2,7 +2,7 @@
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
-
+import math
 
 IDX=0
 AXS=1
@@ -15,18 +15,76 @@ Z=2
 POS=0
 VEL=1
 
+class Beam:
+	def __init__(self,pos,vel):
+		self.pos=pos
+		self.vel=vel
+
+	def point(self,time):
+		return self.pos+(time*self.vel)
+
+	def __str__(self):
+		return f"{self.pos}+{self.vel}"
+
+	def angles(self):
+		return math.atan2(self.vel[X],self.vel[Y]),math.atan2(self.vel[X],self.vel[Z])
+
+
+
 def main():
 	with open(sys.argv[1]) as f:
 		inp=f.read().split("\n")
 
 	# xymin,xymax=[int(num) for num in inp[0].split(",")]
-	inp=inp[1:]
+	# inp=inp[1:]
+	beams=[]
+	angles_xy=np.zeros((len(inp)))
+	angles_xz=np.zeros((len(inp)))
 
-	arr=np.zeros((len(inp),3,2),dtype=np.longlong)
+	beam_arrs=np.zeros((len(inp),6))
 
+	# arr=np.zeros((len(inp),3,2),dtype=np.longlong)
 	for idx,line in enumerate(inp):
-		line_arr=np.array([[int(num) for num in subline.split(",")] for subline in line.split("@")])
-		arr[idx]=line_arr.T
+		beam_arr=np.array([[int(num) for num in subline.split(",")] for subline in line.split("@")])
+		beam_arrs[idx,0:3]=beam_arr[0]
+		beam_arrs[idx,3:6]=beam_arr[1]
+		# beams.append(Beam(*beam_arr))
+		axy,axz=Beam(*beam_arr).angles()
+		angles_xy[idx]=axy
+		angles_xz[idx]=axz
+
+	# beam_arrs[:,0:3]=0
+
+
+	_,ax=plt.subplots(subplot_kw={"projection": "3d"})
+	ax.quiver(
+		beam_arrs[:,0],
+		beam_arrs[:,1],
+		beam_arrs[:,2],
+		beam_arrs[:,3],
+		beam_arrs[:,4],
+		beam_arrs[:,5],
+		# length=0.4,
+		arrow_length_ratio=0,
+		# normalize=True
+	)
+	# ax.quiver(1,0,0,.1,0,0,color="green")
+	# ax.quiver(0,1,0,0,.1,0)
+	# ax.quiver(0,0,1,0,0,.1,color="red")
+	# ax.quiver(-1,0,0,-.1,0,0,color="green")
+	# ax.quiver(0,-1,0,0,-.1,0)
+	# ax.quiver(0,0,-1,0,0,-.1,color="red")
+	plt.show()
+
+	# plt.scatter(angles_xy,angles_xz)
+	# plt.grid()
+	# plt.show()
+
+
+		# print(beam)
+
+
+		# arr[idx]=line_arr.T
 
 	# arr=arr[:,(X,Y),:]
 
@@ -39,8 +97,8 @@ def main():
 	# plt.show()
 
 
-	for i in range(arr.shape[0]):
-		for j in range(i+1,arr.shape[0]):
+	# for i in range(arr.shape[0]):
+	# 	for j in range(i+1,arr.shape[0]):
 			# vec_p=arr[i,:,POS]-arr[j,:,POS]
 
 			# mat=np.vstack([arr[i,:,POS],arr[i,:,VEL],-arr[j,:,VEL]]).T
@@ -63,7 +121,7 @@ def main():
 			# print(arr[i,:,POS]+(ki*arr[i,:,VEL]))
 			# print(arr[j,:,POS]+(kj*arr[j,:,VEL]))
 
-			return
+			# return
 			# quot=arr[i,:,VEL]/arr[j,:,VEL]
 			# if np.all(quot==1):
 				# print(f"{i} and {j} are parallel.")
@@ -88,7 +146,7 @@ def main():
 	# 				# print(". intersect outside",i,j,x,y)
 
 
-	# print(f"ANSWER: {result}")
+	print(f"ANSWER: {result}")
 	# _ is _!
 
 
