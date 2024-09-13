@@ -1,0 +1,67 @@
++tk*   pj
++tk*tj*vj
+-tk   *pi
+-tk*ti*vi
++tj   *pi
++tj*ti*vi
+-tj   *pk
+-tj*tk*vk
++ti   *pk
++ti*tk*vk
+-ti   *pj
+-ti*tj*vj
+
+ti*(
+	-tk   *vi
+	+tj   *vi
+	+     *pk
+	+   tk*vk
+	-     *pj
+	-   tj*vj
+)
++tk*   pj
++tk*tj*vj
+-tk   *pi
++tj   *pi
+-tj   *pk
+-tj*tk*vk
+
+ti(tj,tk)=-(
+		+      tk pj
+		+   tj tk vj
+		-      tk pi
+		+   tj    pi
+		-   tj    pk
+		-   tj tk vk
+	)/(
+		-      tk vi
+		+   tj    vi
+		+         pk
+		+      tk vk
+		-         pj
+		-   tj    vj
+	)
+
+  bj-bi/tj-ti=bk-bj/tk-tj
+=>Î-Ê/j-i=K-J/k-j
+=>(k-j)(J-I)-(j-i)(K-J)=0
+=>0=
+	+  oY
+	-  oX
+	- i Y --
+	+ i X
+	- i Z
+	+ i X --
+	+e  Z
+	-e  Y
+=>0=
+	+  kY
+	+ jky
+	-  kX
+	-i kx
+	+ j X
+	+ij x
+	- j Z
+	- jkz
+
+
