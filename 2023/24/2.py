@@ -62,6 +62,37 @@ def equation(beams,times):
 	return np.linalg.norm(result)
 
 
+def rotate_x(angle):
+	return np.array([
+		[1,0,0],
+		[0,np.cos(angle),-np.sin(angle)],
+		[0,np.sin(angle),np.cos(angle)]
+	])
+
+def rotate_y(angle):
+	return np.array([
+		[np.cos(angle),0,np.sin(angle)],
+		[0,1,0],
+		[-np.sin(angle),0,np.cos(angle)]
+	])
+
+
+def get_meet_area(beam_arrs):
+	beams=[Beam(beam[:3],beam[3:]) for beam in beam_arrs]
+	meat_poss=np.zeros((len(beams)-1,2))
+	for idx,beam in enumerate(beams[1:]):
+		meat_poss[idx,:]=beams[0].meet(beam)
+
+	x_min=np.min(meat_poss[:,X])
+	x_max=np.max(meat_poss[:,X])
+
+	y_min=np.min(meat_poss[:,Y])
+	y_max=np.max(meat_poss[:,Y])
+
+	return (x_max-x_min)*(y_max-y_min)
+
+def deg2rad(deg):
+	return deg*180/np.pi
 
 def main():
 	with open(sys.argv[1]) as f:
@@ -69,7 +100,6 @@ def main():
 
 	# xymin,xymax=[int(num) for num in inp[0].split(",")]
 	# inp=inp[1:]
-	beams=[]
 	angles_xy=np.zeros((len(inp)))
 	angles_xz=np.zeros((len(inp)))
 
@@ -78,9 +108,35 @@ def main():
 	# arr=np.zeros((len(inp),3,2),dtype=np.longlong)
 	for idx,line in enumerate(inp):
 		beam_arr=np.array([[int(num) for num in subline.split(",")] for subline in line.split("@")])
-		beam_arrs[idx,0:3]=beam_arr[0]
-		beam_arrs[idx,3:6]=beam_arr[1]
-		beams.append(Beam(*beam_arr))
+		beam_arrs[idx,:3]=beam_arr[0]
+		beam_arrs[idx,3:]=beam_arr[1]
+
+	NX=500
+	NY=1
+	image=np.zeros((NX,NY))
+	for x_idx,x_angle in enumerate(np.linspace(0,0.001,NX)):
+		print(x_idx,x_angle)
+		for y_idx,y_angle in enumerate(np.linspace(0,180,NY)):
+			beam_arrs_rot=beam_arrs.copy()
+			beam_arrs_rot[:,:3]@=rotate_x(deg2rad(x_angle))
+			beam_arrs_rot[:,3:]@=rotate_x(deg2rad(x_angle))
+			beam_arrs_rot[:,:3]@=rotate_y(deg2rad(y_angle))
+			beam_arrs_rot[:,3:]@=rotate_y(deg2rad(y_angle))
+			image[x_idx,y_idx]=get_meet_area(beam_arrs_rot)
+
+	# plt.imshow(image,vmin=0,vmax=1_000_000_000_000)
+	image=np.log10(image)
+	# plt.plot(image,marker="x",linewidth=0)
+	plt.plot(image,marker="x")
+	# plt.imshow(image)
+	plt.show()
+
+	# print()
+
+
+	# print(beam_arrs)
+
+		# beams.append(Beam(*beam_arr))
 		# axy,axz=Beam(*beam_arr).angles()
 		# angles_xy[idx]=axy
 		# angles_xz[idx]=axz
@@ -88,30 +144,33 @@ def main():
 	# beams.insert(0,Beam(np.array((0,0,0)),np.array((0,1,1))))
 	# beams.insert(1,Beam(np.array((4,1,0)),np.array((-1,1,-1))))
 
-	x=[]
-	y=[]
-	for i in range(len(beams)):
-		print(i)
-		for j in range(i+1,len(beams)):
-			meet_pos=beams[i].meet(beams[j],[0,2])
-			if meet_pos is not None:
-				if meet_pos[0]<1e20 and meet_pos[1]<1e20:
-					x.append(meet_pos[0])
-					y.append(meet_pos[1])
-
-
-			# print(i,j,meet_pos)
-
-	x=np.array(x)
-	y=np.array(y)
 
 
 
-	# plt.hist(x)
+	# x=[]
+	# y=[]
+	# for i in range(1,len(beams)):
+	# 	print(i)
+	# 	# for j in range(i+1,len(beams)):
+	# 	meet_pos=beams[0].meet(beams[i],[0,1])
+	# 	if meet_pos is not None:
+	# 		if meet_pos[0]<1e20 and meet_pos[1]<1e20:
+	# 			x.append(meet_pos[0])
+	# 			y.append(meet_pos[1])
+
+
+	# 		# print(i,j,meet_pos)
+
+	# x=np.array(x)
+	# y=np.array(y)
+
+
+
+	# # plt.hist(x)
+	# # plt.show()
+
+	# plt.scatter(x,y)
 	# plt.show()
-
-	plt.scatter(x,y)
-	plt.show()
 
 	# print()
 	# print(equation(beams[:3],[1,2,4]))
