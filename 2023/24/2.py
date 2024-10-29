@@ -100,8 +100,8 @@ def main():
 
 	# xymin,xymax=[int(num) for num in inp[0].split(",")]
 	# inp=inp[1:]
-	angles_xy=np.zeros((len(inp)))
-	angles_xz=np.zeros((len(inp)))
+	# angles_xy=np.zeros((len(inp)))
+	# angles_xz=np.zeros((len(inp)))
 
 	beam_arrs=np.zeros((len(inp),6))
 
@@ -111,25 +111,49 @@ def main():
 		beam_arrs[idx,:3]=beam_arr[0]
 		beam_arrs[idx,3:]=beam_arr[1]
 
-	NX=500
+	# y_angle=0
+	NX=1000
 	NY=1
-	image=np.zeros((NX,NY))
-	for x_idx,x_angle in enumerate(np.linspace(0,0.001,NX)):
-		print(x_idx,x_angle)
-		for y_idx,y_angle in enumerate(np.linspace(0,180,NY)):
+	for y_angle_idx,y_angle in enumerate(np.linspace(0,180,NY)):
+		beam_comp=2
+		# NY=1
+		result=[np.zeros((NX,2)) for _ in range(beam_comp)]
+		# image=np.zeros((NX,NY))
+		# for x_idx,x_angle in enumerate(np.linspace(0,0.001,NX)):
+		for x_angle_idx,x_angle in enumerate(np.linspace(0,180,NX)):
 			beam_arrs_rot=beam_arrs.copy()
 			beam_arrs_rot[:,:3]@=rotate_x(deg2rad(x_angle))
 			beam_arrs_rot[:,3:]@=rotate_x(deg2rad(x_angle))
 			beam_arrs_rot[:,:3]@=rotate_y(deg2rad(y_angle))
 			beam_arrs_rot[:,3:]@=rotate_y(deg2rad(y_angle))
-			image[x_idx,y_idx]=get_meet_area(beam_arrs_rot)
+			beams=[Beam(beam[:3],beam[3:]) for beam in beam_arrs_rot]
+			for beam_idx,beam in enumerate(beams[1:1+beam_comp]):
+				result[beam_idx][x_angle_idx,:]=beams[0].meet(beam)
+
+
+		for arr in result:
+			plt.plot(arr[:,0],arr[:,1],linewidth=0,marker="x")
+			# plt.plot(arr[-1,0],arr[-1,1],marker="o",color="b")
+			# break
+
+		plt.show()
+
+
+		# print(x_idx,x_angle)
+		# for y_idx,y_angle in enumerate(np.linspace(0,180,NY)):
+			# beam_arrs_rot=beam_arrs.copy()
+			# beam_arrs_rot[:,:3]@=rotate_x(deg2rad(x_angle))
+			# beam_arrs_rot[:,3:]@=rotate_x(deg2rad(x_angle))
+			# beam_arrs_rot[:,:3]@=rotate_y(deg2rad(y_angle))
+			# beam_arrs_rot[:,3:]@=rotate_y(deg2rad(y_angle))
+			# image[x_idx,y_idx]=get_meet_area(beam_arrs_rot)
 
 	# plt.imshow(image,vmin=0,vmax=1_000_000_000_000)
-	image=np.log10(image)
-	# plt.plot(image,marker="x",linewidth=0)
-	plt.plot(image,marker="x")
-	# plt.imshow(image)
-	plt.show()
+	# image=np.log10(image)
+	# # plt.plot(image,marker="x",linewidth=0)
+	# plt.plot(image,marker="x")
+	# # plt.imshow(image)
+	# plt.show()
 
 	# print()
 
