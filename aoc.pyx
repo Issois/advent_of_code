@@ -22,11 +22,21 @@ BOILERPLATE=("""
 import numpy as np
 import sys
 def main():
-	with open(sys.argv[1]) as f:
+	with open(sys.argv[2]) as f:
 		inp=f.read().split("\\n")
-	result=0
+	solve=[solve_1,solve_2]
+	solve=solve[int(sys.argv[1])-1]
 
-	print(f"ANSWER: {result}")
+	print(f"ANSWER: {solve(inp)}")
+
+def solve_1(inp):
+	result=None
+	return result
+
+def solve_2(inp):
+	result=None
+	return result
+
 main()
 """)
 
@@ -58,7 +68,6 @@ class Ui:
 		self.mgr=None
 		self.act={
 			Ui.Cmd.none:lambda:None,
-			Ui.Cmd.dirs:lambda:self.mgr.make_dirs(),
 			Ui.Cmd.boilerplate:lambda:self.mgr.write_boilerplate(),
 			Ui.Cmd.download:lambda:self.mgr.download_data(),
 			Ui.Cmd.encrypt:lambda:self.mgr.encrypt_data(),
@@ -101,7 +110,6 @@ class Ui:
 
 	class Cmd(Enum):
 		none=""
-		dirs="dirs"
 		boilerplate="bp"
 		download="dl"
 		encrypt="enc"
@@ -118,19 +126,16 @@ class AocManager:
 
 
 
-	def make_dirs(self):
-		dir_path=self.dir_path.resolve()
-		print(f"AocManager: Making directory: \"{dir_path}\".")
-		if not self.dry_run:
-			os.makedirs(dir_path,exist_ok=True)
+	# def make_dirs(self):
+	# 	dir_path=self.dir_path.resolve()
+	# 	print(f"AocManager: Making directory: \"{dir_path}\".")
+	# 	if not self.dry_run:
+	# 		os.makedirs(dir_path,exist_ok=True)
 
 	def write_boilerplate(self):
 		print(f"AocManager: Writing boilerplate.")
-		files_to_write=[]
-		for i in range(2):
-			file_path=(self.dir_path/f"{i+1}.py").resolve()
-			files_to_write.append((file_path,BOILERPLATE))
-		self.write_files(files_to_write)
+		self.dir_path.mkdir(parents=True,exist_ok=True)
+		self.write_files([((self.dir_path/f"solve.py").resolve(),BOILERPLATE)])
 
 	def download_data(self):
 		session_id=GET_SESSION_ID()
