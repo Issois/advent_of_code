@@ -103,7 +103,9 @@ class Ui:
 		while not cmd==Ui.Cmd.exit:
 			try:
 				cmd=Ui.Cmd(self.get_input(" ")[0])
+				# print("act-"+str(cmd))
 				self.act[cmd]()
+				# print("fin-"+str(cmd))
 			except Exception:
 				traceback.print_exc()
 
@@ -158,7 +160,10 @@ class AocManager:
 	def encrypt_data(self):
 		engine=Fernet(GET_PASSWORD())
 		dir_path=self.dir_path.resolve()
-		input_files=self.dir_path.glob(f"*.{INPUT_SUFFIX}")
+		input_files=list(self.dir_path.glob(f"*.{INPUT_SUFFIX}"))
+		if len(input_files)==0:
+			print("AocManager: No files to encrypt.")
+			return
 		for old_file_path in input_files:
 			new_file_path=f"{old_file_path}.{ENCR_SUFFIX}"
 			print(f"AocManager: Encrypt \"{old_file_path}\" to \"{new_file_path}\".")
@@ -171,7 +176,11 @@ class AocManager:
 	def decrypt_data(self):
 		engine=Fernet(GET_PASSWORD())
 		dir_path=self.dir_path.resolve()
-		input_files=self.dir_path.glob(f"*.{ENCR_SUFFIX}")
+		input_files=list(self.dir_path.glob(f"*.{ENCR_SUFFIX}"))
+		if len(input_files)==0:
+			print("AocManager: No files to decrypt.")
+			return
+
 		for old_file_path in input_files:
 			new_file_path=old_file_path.resolve()
 			new_file_path=str(new_file_path)[:-(len(ENCR_SUFFIX)+1)]
