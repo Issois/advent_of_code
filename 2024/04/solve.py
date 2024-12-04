@@ -8,7 +8,8 @@ def main():
 	solve=solve[int(sys.argv[1])-1]
 
 	print(f"ANSWER: {solve(inp)}")
-
+X=0
+Y=1
 WORD="XMAS"
 DIRE=np.array([
 	[-1, 0],
@@ -49,14 +50,36 @@ def check(arr,pos,dire,idx):
 	if np.any(new_pos<0) or np.any(new_pos>=arr.shape):
 		return False
 
-	# print(new_pos,arr[new_pos])
-
 	return arr[tuple(new_pos)]==WORD[idx] and check(arr,new_pos,dire,idx+1)
 
 
 
 def solve_2(inp):
-	result=None
+	result=0
+
+
+	rowc=len(inp)
+	colc=len(inp[0])
+	inp=np.array([list(row) for row in inp],dtype=str)
+
+	a_cnt=0
+
+	for row in range(1,rowc-1):
+		for col in range(1,colc-1):
+			pos=np.array([row,col])
+			char=inp[tuple(pos)]
+			if char=="A":
+				a_cnt+=1
+				mas=[]
+				dires=DIRE[1::2,:]
+				xs=inp[pos[X]+dires[:,X],pos[Y]+dires[:,Y]]
+				if (((xs[0]=="M" and xs[2]=="S")
+				  or (xs[0]=="S" and xs[2]=="M")
+				  )   and(
+				     (xs[1]=="M" and xs[3]=="S")
+				  or (xs[1]=="S" and xs[3]=="M")
+					)):
+					result+=1
 	return result
 
 main()
