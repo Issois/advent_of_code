@@ -5,18 +5,21 @@ import matplotlib.pyplot as plt
 
 X=0
 Y=1
+Z=2
+XY=slice(X,Y+1)
+
 DIREV=np.array([
-	[-1, 0],
-	[-1, 1],
-	[ 0, 1],
-	[ 1, 1],
-	[ 1, 0],
-	[ 1,-1],
-	[ 0,-1],
-	[-1,-1],
+	[-1, 0, 0],
+	[-1, 1, 0],
+	[ 0, 1, 0],
+	[ 1, 1, 0],
+	[ 1, 0, 0],
+	[ 1,-1, 0],
+	[ 0,-1, 0],
+	[-1,-1, 0],
 ])
 
-ar=np.array
+# ar=np.array
 
 UNVISITED=0
 VISITED=1
@@ -49,6 +52,8 @@ def is_in_range(pos,arr):
 		0<=pos[X]<arr.shape[X]
 		and
 		0<=pos[Y]<arr.shape[Y]
+		and
+		arr[tuple(pos[[X,Y]])]==0
 	)
 
 def solve_1(inp,start,dire):
@@ -95,110 +100,217 @@ def get_beam(arr,pos,dire):
 		res=res[::-1]
 	return res
 
-N_DATA=0
-N_D_POS=0
-N_D_DIRE=1
-N_VISIT=1
+# N_DATA=0
+N_POS=0
+N_DIRE=1
+# N_VISIT=1
 
 
-def find_next_node(arr,cur_pos,cur_dire):
+def add_next_node(arr,cur_pos,cur_dire,graph):
 	# cur_pos,cur_dire=cur_node_data
-	# cur_pos=ar(cur_pos)
 	beam=get_beam(arr,cur_pos,cur_dire)
-	# print(cur_node_data,beam)
+	# print(f"ann: cur pos: {cur_pos}")
+	cur_node=tuple(cur_pos),cur_dire
 	occ=np.nonzero(beam)[0]
 	# return
 	if len(occ)==0:
-		# if len(beam)==0:
-			# next_node_pos=
-		next_node=None
-		# nodes[cur_node_data]=None
+		if len(beam)==0:
+			next_node=None
+		else:
+			next_node_pos=cur_pos+(len(beam)*DIREV[cur_dire])
+			next_node=tuple(next_node_pos),None
+			graph[next_node]=None
 	else:
 		next_node_pos=tuple(cur_pos+((occ[0])*DIREV[cur_dire]))
-		next_node_dire=(cur_dire+4)%8
-		next_node=[(tuple(next_node_pos),next_node_dire),UNVISITED]
+		next_node_dire=(cur_dire+2)%8
+		next_node=tuple(next_node_pos),next_node_dire
 		# print(pos,dire,cur_dire,next_node_pos)
-	return next_node
-	# nodes[cur_node_data]=[(next_node_pos,next_node_dire),UNVISITED]
+
+	graph[cur_node]=next_node
+
+def to_3d(vec2):
+	return np.array(list(vec2)+[0])
 
 def build_base_graph(arr):
 	positions=np.array(np.nonzero(arr==2)).T
-	nodes={}
-	for pos in positions:
+	graph={}
+	for pos2d in positions:
+		pos=to_3d(pos2d)
 		for dire in range(0,8,2):
+			# print(f"xx {pos}")
 			cur_pos=pos+DIREV[dire]
 			cur_dire=(dire+6)%8
-			cur_node_data=tuple(cur_pos),cur_dire
 			if is_in_range(cur_pos,arr):
-				nodes[cur_node_data]=find_next_node(arr,cur_pos,cur_dire)
-	return nodes
+				# print(f"bbg cur pos {cur_pos}")
+				add_next_node(arr,cur_pos,cur_dire,graph)
+				# graph[cur_node_data]=find_next_node(arr,cur_pos,cur_dire)
+	return graph
+
+COLORS=[
+	[255,  0,  0],
+	[155,  0,  0],
+	[255,255,255],
+	[ 50, 50, 50],
+	[  0,255,  0],
+	[  0,  0,100],
+	[  0,  0,255],
+	[ 50, 50, 50],
+	# [255,255,  0],
+	# [  0,255,255],
+	# [  0,  0,255],
+	# [255,  0,255],
+	# [  0,255,  0],
+]
+
+C_START=0
+C_NEXT=1
+C_CORR=2
+C_WRONG_DIRE=3
+C_WRONG_SIDE=4
+C_NO_DIRE=5
+C_NO_RANGE=6
+C_BLOCK=7
 
 def solve_2(arr,start_pos,start_dire):
+	start_pos=to_3d(start_pos)
 	answer=0
 
-	graph_base=build_base_graph(arr)
-	start_node_data=tuple(start_pos),start_dire
-	graph_base[start_node_data]=find_next_node(arr,start_pos,start_dire)
-	for node_data_a,node_b in graph_base.items():
-		if node_b is not None:
-			plt.plot([node_data_a[N_D_POS][X],node_b[N_DATA][N_D_POS][X]],[node_data_a[N_D_POS][Y],node_b[N_DATA][N_D_POS][Y]],color="r")
+	graph=build_base_graph(arr)
+	add_next_node(arr,start_pos,start_dire,graph)
+	start_node=tuple(start_pos),start_dire
 
-	plt.show()
 
-	return
-	node="start"
-	path=[]
-	pnodes=[]
-	max_steps=1000
-	steps=0
-	# for start,end in graph_base.items():
+	# return
+
+	# while start_node is not None:
+	# 	print(f"PATH iter: {start_node}")
+	# 	start_node=graph[start_node]
+	# return
+
+	# graph[start_node_data]=
+	# positions=np.array(np.nonzero(arr==2)).T
+	# plt.imshow(arr)
+	# # plt.scatter(positions[:,Y],positions[:,X],color="r",marker="s")
+	# for node_data_a,node_b in graph.items():
+	# 	if node_b is not None:
+	# 		color="r"
+	# 		lw=0
+	# 		ls="-"
+	# 		if graph[node_b[N_DATA]] is None:
+	# 			color="w"
+	# 			ls=":"
+	# 			lw=2
+	# 		plt.plot([node_data_a[N_D_POS][Y],node_b[N_DATA][N_D_POS][Y]],[node_data_a[N_D_POS][X],node_b[N_DATA][N_D_POS][X]],linestyle=ls,linewidth=lw,color=color)
+
+	# # plt.gca().invert_yaxis()
+
+	# plt.show()
+
+	# return
+
+	cur_node=start_node
+	# path=[]
+	# pnodes=[]
+	# max_steps=1000
+	# steps=0
+	while True:
+		image=np.zeros((arr.shape[X],arr.shape[Y],3),dtype=int)
+		cur_node
+		next_node=graph[cur_node]
+		image[cur_node[N_POS][XY]]=COLORS[C_START]
+		image[next_node[N_POS][XY]]=COLORS[C_NEXT]
+
+		# Find all nodes to the right between both nodes.
+		# cur_pos=ar[]
+		dpos_path=np.array(next_node[N_POS])-np.array(cur_node[N_POS])
+		for search_node in graph:
+			if search_node==cur_node or search_node==next_node:
+				pass
+			elif search_node[N_DIRE] is None:
+				pass
+				# print(f"search node {search_node} has no dire.")
+				# image[search_node[N_POS][XY]]=COLORS[C_NO_DIRE]
+			elif (search_node[N_DIRE]+4)%8!=cur_node[N_DIRE]:
+				pass
+				# print(f"search node {search_node} not correct dire.")
+				# image[search_node[N_POS][XY]]=COLORS[C_WRONG_DIRE]
+			else:
+				dpos_search=np.array(search_node[N_POS])-np.array(cur_node[N_POS])
+				side=np.cross(dpos_path,dpos_search)[Z]
+				if side>=0:
+					# print(f"search node {search_node} on wrong side.")
+					image[search_node[N_POS][XY]]=COLORS[C_WRONG_SIDE]
+				else:
+					# image[search_node[N_POS][XY]]=COLORS[C_CORR]
+					# continue
+					project=np.dot(dpos_path,dpos_search)/np.dot(dpos_path,dpos_path)
+					if not 0<=project<1:
+						image[search_node[N_POS][XY]]=COLORS[C_NO_RANGE]
+					else:
+						# Check which are not blocked.
+						image[search_node[N_POS][XY]]=COLORS[C_CORR]
+
+		# positions=np.array(np.nonzero(arr==2)).T
+		image[arr==2]=COLORS[C_BLOCK]
+		plt.imshow(image)
+		plt.show()
+
+
+
+		return
+
+
+
+
+	# for start,end in graph.items():
 	# 	print(start,end)
-	# # print(graph_base)
-	while node is not None:
-		if len(pnodes)>3:
-			node_pos,node_dire=node
-			# look at all prev with dire+6 and to the right
-			target_node_dire=(node_dire+2)%8
-			dire_right =DIREV[(node_dire+6)%8]
-			dire_behind=DIREV[ node_dire     ]
+	# # print(graph)
+	# while node is not None:
 
-			delta=ar(path[-1])-ar(node[0])
-			# print(path[-1],node[0],delta)
-			# return
-			delta3=np.zeros((3),dtype=int)
-			delta3[:2]=delta
+	# 	if len(pnodes)>3:
+	# 		node_pos,node_dire=node
+	# 		# look at all prev with dire+6 and to the right
+	# 		target_node_dire=(node_dire+2)%8
+	# 		dire_right =DIREV[(node_dire+6)%8]
+	# 		dire_behind=DIREV[ node_dire     ]
 
-			print(f"current node {node}, {delta}")
-			for pnode in pnodes[1:-2]:
-				pnode_pos,pnode_dire=pnode
-				print(path[-1],pnode)
-				deltap=ar(path[-1])-ar(pnode_pos)
-				deltap3=np.zeros((3),dtype=int)
-				deltap3[:2]=deltap
+	# 		delta=ar(path[-1])-ar(node[0])
+	# 		# print(path[-1],node[0],delta)
+	# 		# return
+	# 		delta3=np.zeros((3),dtype=int)
+	# 		delta3[:2]=delta
 
-				print(delta3,deltap3)
-				cross=np.cross(delta3,deltap3)
-				print(cross)
+	# 		print(f"current node {node}, {delta}")
+	# 		for pnode in pnodes[1:-2]:
+	# 			pnode_pos,pnode_dire=pnode
+	# 			print(path[-1],pnode)
+	# 			deltap=ar(path[-1])-ar(pnode_pos)
+	# 			deltap3=np.zeros((3),dtype=int)
+	# 			deltap3[:2]=deltap
 
-				# if pnode_dire==target_node_dire:
-				# 	print(f"node correct {pnode}")
-				# else:
-				# 	print(f"node wrong   {pnode}")
+	# 			print(delta3,deltap3)
+	# 			cross=np.cross(delta3,deltap3)
+	# 			print(cross)
 
-
-			break
+	# 			# if pnode_dire==target_node_dire:
+	# 			# 	print(f"node correct {pnode}")
+	# 			# else:
+	# 			# 	print(f"node wrong   {pnode}")
 
 
-		if node=="start":
-			path=[start_pos]
-		else:
-			path.append(np.array(node[0])+DIREV[node[1]])
-		pnodes.append(node)
-		node=graph_base[node]
-		steps+=1
-		if steps>max_steps:raise ValueError("Too many steps!")
+	# 		break
 
-	path=np.array(path)
+
+	# 	if node=="start":
+	# 		path=[start_pos]
+	# 	else:
+	# 		path.append(np.array(node[0])+DIREV[node[1]])
+	# 	pnodes.append(node)
+	# 	node=graph_base[node]
+	# 	steps+=1
+	# 	if steps>max_steps:raise ValueError("Too many steps!")
+
+	# path=np.array(path)
 	# print(path)
 
 	# positions=np.array(np.nonzero(inp==2)).T
