@@ -255,7 +255,7 @@ def find_potential_target_nodes(graph,cur_node,next_node,image):
 					# image[search_node[N_POS][XY]]=COLORS[C_NO_RANGE]
 				else:
 					# Check which are not blocked.
-					dists.append(project*dist)
+					dists.append(int(project*dist))
 					# image[search_node[N_POS][XY]]=COLORS[C_CORR]
 	return dists
 
@@ -361,7 +361,7 @@ def solve_2(arr,start_pos,start_dire):
 		# dists=[]
 		for dist in dists:
 			# Add stone at dist+1 and temp nodes.
-			temp_block_pos=cur_node[N_POS]+(int(dist+1)*DIREV[cur_node[N_DIRE]])
+			temp_block_pos=cur_node[N_POS]+((dist+1)*DIREV[cur_node[N_DIRE]])
 			if is_in_range(temp_block_pos,arr):
 				# print(f"temp block pos: {temp_block_pos}")
 				changed_targets={}
@@ -405,6 +405,7 @@ def solve_2(arr,start_pos,start_dire):
 
 	# 1526 too high
 	# 1583 even higher
+	# 1564 still to high
 	return answer
 
 # LOOPS=[]
