@@ -173,7 +173,7 @@ def add_next_node(arr,cur_pos,cur_dire,graph,add_end_node=True):
 		if len(beam)==0 or not add_end_node:
 			next_node=None
 		else:
-			next_node_pos=cur_pos+(len(beam)*DIREV[cur_dire])
+			next_node_pos=cur_pos+((len(beam)-1)*DIREV[cur_dire])
 			next_node=tuple(next_node_pos),None
 			graph[next_node]=None
 	else:
@@ -206,21 +206,28 @@ COLORS=[
 	[255,  0,  0],
 	[155,  0,  0],
 	[255,255,255],
-	[ 50, 50, 50],
+	[150,150,150],
 	[  0,255,  0],
 	[  0,  0,100],
-	[  0,  0,255],
-	[ 50, 50, 50],
+	[  0,150,  0],
+	[255,255,  0],
+	[255,  0,255],
+	[  0,  0,  0],
 ]
 
 C_START=0
 C_NEXT=1
 C_CORR=2
-C_WRONG_DIRE=3
-C_WRONG_SIDE=4
+C_WRONG_DIRE=9
+C_WRONG_SIDE=9
 C_NO_DIRE=5
-C_NO_RANGE=6
-C_BLOCK=7
+C_NO_RANGE=9
+C_BLOCK=3
+C_TRG=7
+C_SRC=8
+C_BLACK=9
+C_GREEN=4
+C_VISI=6
 
 
 def find_potential_target_nodes(graph,cur_node,next_node,image):
@@ -233,30 +240,29 @@ def find_potential_target_nodes(graph,cur_node,next_node,image):
 		elif search_node[N_DIRE] is None:
 			pass
 			# print(f"search node {search_node} has no dire.")
-			# image[search_node[N_POS][XY]]=COLORS[C_NO_DIRE]
 		elif (search_node[N_DIRE]+4)%8!=cur_node[N_DIRE]:
 			pass
 			# print(f"search node {search_node} not correct dire.")
-			# image[search_node[N_POS][XY]]=COLORS[C_WRONG_DIRE]
+			if image is not None:image[search_node[N_POS][XY]]=COLORS[C_WRONG_DIRE]
 		else:
 			dpos_search=np.array(search_node[N_POS])-np.array(cur_node[N_POS])
 			side=np.cross(dpos_path,dpos_search)[Z]
 			if side>=0:
 				pass
 				# print(f"search node {search_node} on wrong side.")
-				# image[search_node[N_POS][XY]]=COLORS[C_WRONG_SIDE]
+				if image is not None:image[search_node[N_POS][XY]]=COLORS[C_WRONG_SIDE]
 			else:
 				pass
-				# image[search_node[N_POS][XY]]=COLORS[C_CORR]
+				if image is not None:image[search_node[N_POS][XY]]=COLORS[C_CORR]
 				# continue
 				project=np.dot(dpos_path,dpos_search)/np.dot(dpos_path,dpos_path)
 				if not 0<=project<1:
 					pass
-					# image[search_node[N_POS][XY]]=COLORS[C_NO_RANGE]
+					if image is not None:image[search_node[N_POS][XY]]=COLORS[C_NO_RANGE]
 				else:
 					# Check which are not blocked.
 					dists.append(int(project*dist))
-					# image[search_node[N_POS][XY]]=COLORS[C_CORR]
+					if image is not None:image[search_node[N_POS][XY]]=COLORS[C_CORR]
 	return dists
 
 def find_source_nodes(arr,node):
@@ -288,7 +294,7 @@ def find_source_nodes(arr,node):
 
 	return nodes
 
-def find_loop(graph,next_node,visited):
+def find_loop(graph,next_node,visited,image=None):
 	# print(f"Go down path starting with {next_node}")
 	# next_node=graph[cur_node]
 	prev_node=next_node
@@ -302,13 +308,16 @@ def find_loop(graph,next_node,visited):
 		elif next_node in visited_temp:
 			# print(f"- found loop in visited_temp {len(visited_temp)} {prev_node}->{next_node} {dires}")
 			# if (prev_node[N_DIRE]+2)%8!=next_node[N_DIRE]:
-				# print(f"- found loop in visited_temp {len(visited_temp)} {prev_node}->{next_node}")
+			# print(f"- found loop in visited_temp {len(visited_temp)} {prev_node}->{next_node}")
 			return 1
 		elif next_node is None:
 			# print("- found no loop")
 			return 0
 		else:
 			visited_temp.add(next_node)
+			# print(next_node)
+			if image is not None:image[next_node[N_POS][XY]]=COLORS[C_GREEN]
+
 			# dires.append(next_node[N_DIRE])
 			prev_node=next_node
 			next_node=graph[next_node]
@@ -349,19 +358,29 @@ def solve_2(arr,start_pos,start_dire):
 		# print(f"Current node: {cur_node}.")
 		# print(f"Next node: {next_node}.")
 
-		# image=np.zeros((arr.shape[X],arr.shape[Y],3),dtype=int)
-		# image[cur_node[N_POS][XY]]=COLORS[C_START]
-		# image[next_node[N_POS][XY]]=COLORS[C_NEXT]
-		# image[arr==2]=COLORS[C_BLOCK]
+		image=np.zeros((arr.shape[X],arr.shape[Y],3),dtype=int)
+		image=None
+		image1=None
+		if image is not None:
+			for node in visited:
+				image[node[N_POS][XY]]=COLORS[C_VISI]
+			image[cur_node[N_POS][XY]]=COLORS[C_START]
+			image[next_node[N_POS][XY]]=COLORS[C_NEXT]
+			image[arr==2]=COLORS[C_BLOCK]
+
+			# image[arr==2]=COLORS[C_BLOCK]
 
 		# Find all nodes to the right between both nodes.
-		dists=find_potential_target_nodes(graph,cur_node,next_node,None)
+		dists=find_potential_target_nodes(graph,cur_node,next_node,image)
 		# dists=find_potential_target_nodes(graph,cur_node,next_node,image)
 		dists=set(dists)
 		# dists=[]
 		for dist in dists:
+			if image is not None:
+				image1=image.copy()
 			# Add stone at dist+1 and temp nodes.
 			temp_block_pos=cur_node[N_POS]+((dist+1)*DIREV[cur_node[N_DIRE]])
+			if image is not None:image1[tuple(temp_block_pos)[XY]]=COLORS[C_TRG]
 			if is_in_range(temp_block_pos,arr):
 				# print(f"temp block pos: {temp_block_pos}")
 				changed_targets={}
@@ -370,22 +389,24 @@ def solve_2(arr,start_pos,start_dire):
 					new_node_pos=temp_block_pos+DIREV[(new_node_dire+2)%8]
 					if is_in_range(new_node_pos,arr):
 						new_node=(tuple(new_node_pos),new_node_dire)
+
 						# Search for nodes that could hit temp nodes.
 						source_nodes=find_source_nodes(arr,new_node)
 						# Safe their targets and write temp target.
 						for source_node in source_nodes:
+							if image is not None: image1[source_node[N_POS][XY]]=COLORS[C_SRC]
 							changed_targets[source_node]=graph[source_node]
 							graph[source_node]=new_node
 
-						# if cur_node==start_node:
-						# 	changed_targets[start_node]=graph[start_node]
-						# 	graph[start_node]=new_node
+						if cur_node==start_node and (cur_node[N_DIRE]+2)%8==new_node_dire:
+							changed_targets[start_node]=graph[start_node]
+							graph[start_node]=new_node
 
 						# Find target for new node.
 						add_next_node(arr,new_node_pos,new_node_dire,graph,add_end_node=False)
 						nodes_added.append(new_node)
 
-				loop_count=find_loop(graph,graph[cur_node],visited)
+				loop_count=find_loop(graph,graph[cur_node],visited,image1)
 				answer+=loop_count
 
 				# Revert changes in graph.
@@ -393,8 +414,10 @@ def solve_2(arr,start_pos,start_dire):
 					del graph[node_added]
 				for node_changed,old_target in changed_targets.items():
 					graph[node_changed]=old_target
-		# plt.imshow(image)
-		# plt.show()
+			if image is not None:
+				plt.imshow(image1)
+				plt.show()
+				if input()=="x":exit()
 
 		cur_node=next_node
 		next_node=graph[cur_node]
@@ -406,6 +429,8 @@ def solve_2(arr,start_pos,start_dire):
 	# 1526 too high
 	# 1583 even higher
 	# 1564 still to high
+	# 1562 still to high
+	# 1563 still to high
 	return answer
 
 # LOOPS=[]
