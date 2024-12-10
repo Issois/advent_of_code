@@ -3,6 +3,8 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 
+from matplotlib.collections import LineCollection
+
 X=0
 Y=1
 Z=2
@@ -297,22 +299,24 @@ def find_source_nodes(arr,node):
 def find_loop(graph,next_node,visited,image=None):
 	# print(f"Go down path starting with {next_node}")
 	# next_node=graph[cur_node]
+	path=[]
 	prev_node=next_node
 	# dires=[]
 	visited_temp=set()
 	while True:
+		path.append(next_node)
 		if next_node in visited:
 			# print(f"- found loop in visited  {len(visited_temp)}")
-			return 1
+			return 1,path
 
 		elif next_node in visited_temp:
 			# print(f"- found loop in visited_temp {len(visited_temp)} {prev_node}->{next_node} {dires}")
 			# if (prev_node[N_DIRE]+2)%8!=next_node[N_DIRE]:
 			# print(f"- found loop in visited_temp {len(visited_temp)} {prev_node}->{next_node}")
-			return 1
+			return 1,path
 		elif next_node is None:
 			# print("- found no loop")
-			return 0
+			return 0,path
 		else:
 			visited_temp.add(next_node)
 			# print(next_node)
@@ -329,8 +333,59 @@ def solve_2(arr,start_pos,start_dire):
 	answer=0
 
 	graph=build_base_graph(arr)
-	add_next_node(arr,start_pos,start_dire,graph)
+	# add_next_node(arr,start_pos,start_dire,graph)
 	start_node=tuple(start_pos),start_dire
+
+	for x in range(arr.shape[X]):
+		for y in range(arr.shape[Y]):
+			print(x,y)
+			if (x,y,0)!=start_node[N_POS]:
+				changed_targets={}
+				nodes_added=[]
+				temp_block_pos=np.array((x,y,0))
+				# arr_temp=arr.copy()
+				# arr_temp[x,y]=2
+				# graph=build_base_graph(arr_temp)
+				for new_node_dire in range(0,8,2):
+					new_node_pos=temp_block_pos+DIREV[(new_node_dire+2)%8]
+					if is_in_range(new_node_pos,arr):
+						new_node=(tuple(new_node_pos),new_node_dire)
+
+						# Search for nodes that could hit temp nodes.
+						source_nodes=find_source_nodes(arr,new_node)
+						# Safe their targets and write temp target.
+						for source_node in source_nodes:
+							changed_targets[source_node]=graph[source_node]
+							graph[source_node]=new_node
+
+						# if (start_node[N_DIRE]+2)%8==new_node_dire:
+						# 	changed_targets[start_node]=graph[start_node]
+						# 	graph[start_node]=new_node
+
+						# Find target for new node.
+						add_next_node(arr,new_node_pos,new_node_dire,graph,add_end_node=False)
+						nodes_added.append(new_node)
+				
+
+				add_next_node(arr,start_pos,start_dire,graph)
+				visited=set()
+				cur_node=start_node
+				while cur_node is not None and cur_node not in visited:
+					visited.add(cur_node)
+					cur_node=graph[cur_node]
+				if cur_node is not None:
+					answer+=1
+	
+				# Revert changes in graph.
+				for node_added in nodes_added:
+					del graph[node_added]
+				for node_changed,old_target in changed_targets.items():
+					graph[node_changed]=old_target
+	return answer
+
+
+				
+
 
 
 	# node=start_node
@@ -351,9 +406,12 @@ def solve_2(arr,start_pos,start_dire):
 	cur_node=start_node
 	next_node=graph[cur_node]
 	plen=0
+	block_positions=[]
+	path=[]
 	while cur_node is not None and next_node is not None:
 		print(plen)
 		visited.add(cur_node)
+		path.append(cur_node)
 		# cur_node
 		# print(f"Current node: {cur_node}.")
 		# print(f"Next node: {next_node}.")
@@ -375,7 +433,7 @@ def solve_2(arr,start_pos,start_dire):
 		# dists=find_potential_target_nodes(graph,cur_node,next_node,image)
 		dists=set(dists)
 		# dists=[]
-		for dist in dists:
+		for dist_idx,dist in enumerate(dists):
 			if image is not None:
 				image1=image.copy()
 			# Add stone at dist+1 and temp nodes.
@@ -406,16 +464,31 @@ def solve_2(arr,start_pos,start_dire):
 						add_next_node(arr,new_node_pos,new_node_dire,graph,add_end_node=False)
 						nodes_added.append(new_node)
 
-				loop_count=find_loop(graph,graph[cur_node],visited,image1)
+				loop_count,temp_path=find_loop(graph,graph[cur_node],visited,image1)
 				answer+=loop_count
+				if loop_count==1:
+					block_positions.append(tuple(temp_block_pos))
 
 				# Revert changes in graph.
 				for node_added in nodes_added:
 					del graph[node_added]
 				for node_changed,old_target in changed_targets.items():
 					graph[node_changed]=old_target
-			if image is not None:
+			if image is not None and loop_count==1:
+			# if image is not None and dist_idx==len(dists)-1 and plen%10==0:
+
 				plt.imshow(image1)
+				lines=[node[N_POS][1::-1] for node in path]
+				if len(lines)>1:
+					plt.gca().add_collection(LineCollection([lines],colors=["r"]))
+				lines=[lines[-1]]+[node[N_POS][1::-1] for node in temp_path]
+				if len(lines)>1:
+					plt.gca().add_collection(LineCollection([lines],colors=["g"]))
+				# plt.gca().add_collection(LineCollection([node[N_POS][XY] for node in temp_path]))
+				fig=plt.gcf()
+				fig.set_size_inches(9, 9)
+				fig.tight_layout()
+				# fig.canvas.manager.window.move(0,0)
 				plt.show()
 				if input()=="x":exit()
 
@@ -424,13 +497,18 @@ def solve_2(arr,start_pos,start_dire):
 		plen+=1
 		# if plen>4:return
 		# return
-
-
-	# 1526 too high
+	answer=len(block_positions)
+	print("total loops",answer)
+	block_positions=set(block_positions)
+	block_positions.remove(start_node[N_POS])
+	print(block_positions)
+	answer=len(block_positions)
+ 	# 1526 too high
 	# 1583 even higher
-	# 1564 still to high
-	# 1562 still to high
-	# 1563 still to high
+	# 1564 still too high
+	# 1562 still too high
+	# 1563 still too high
+	# 1497 is too high
 	return answer
 
 # LOOPS=[]
