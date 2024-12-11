@@ -3,10 +3,28 @@ import numpy as np
 import sys
 # import matplotlib.pyplot as plt
 
+def add(a,b):return a+b
+def mul(a,b):return a*b
 
 def solve_1(inp):
 	answer=0
+	for result,nums in inp:
+		calcs=[nums[0]]
+		for num in nums[1:]:
+			new_calcs=[]
+			for calc in calcs:
+				for op in [add,mul]:
+					new_calc=op(calc,num)
+					if new_calc<=result:
+						new_calcs.append(new_calc)
+			calcs=new_calcs
+		for calc in calcs:
+			if calc==result:
+				answer+=calc
+				break
 	return answer
+
+
 
 def solve_2(inp):
 	answer=0
@@ -15,7 +33,12 @@ def solve_2(inp):
 def get_input(file_path):
 	with open(file_path) as f:
 		inp=f.read().split("\n")
-	return inp
+	data=[]
+	for line in inp:
+		result,nums=line.split(":")
+		nums=[int(num) for num in nums.strip().split(" ")]
+		data.append((int(result),nums))
+	return data
 
 
 def main():
