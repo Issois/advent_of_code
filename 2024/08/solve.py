@@ -5,6 +5,8 @@ import sys
 
 
 def solve_1(inp):
+	# solve_internal(inp)
+# def solve_internal(inp):
 	# pr_inp(inp)
 	inp_cp=inp.copy()
 
@@ -40,7 +42,7 @@ def solve_1(inp):
 	answer=len(nodes)
 	# print(antennas)
 
-	# 291
+	# 291 is correct.
 	return answer
 
 def pr_inp(inp):
@@ -54,8 +56,47 @@ def is_in_range(arr,pos):
 	)
 
 def solve_2(inp):
+
 	answer=0
+	nodes=set()
+	antennas=set()
+	for row in inp:
+		antennas.update(row)
+	antennas.remove(".")
+
+	for antenna in antennas:
+		indices=np.array(np.nonzero(inp==antenna)).T
+		# indices=np.nonzero(inp==antenna)
+
+		cnt=indices.shape[0]
+		for a1_iidx in range(cnt):
+			for a2_iidx in range(a1_iidx+1,cnt):
+				a1_idx=indices[a1_iidx]
+				a2_idx=indices[a2_iidx]
+
+				print(a1_idx,a2_idx)
+
+				delta=a2_idx-a1_idx
+
+				# k=0
+				for k_start,step in ((0,1),(-1,-1)):
+					k=k_start
+					while True:
+						pos=a1_idx+(k*delta)
+						print(pos)
+						if is_in_range(inp,pos):
+							nodes.add(tuple(pos))
+							k+=step
+						else:
+							break
+
+	answer=len(nodes)
+
+	# 1015 is correct.
 	return answer
+
+
+
 
 def get_input(file_path):
 	with open(file_path) as f:
