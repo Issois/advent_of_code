@@ -5,15 +5,18 @@ import sys
 
 def add(a,b):return a+b
 def mul(a,b):return a*b
+def concat(a,b):return int(str(a)+str(b))
 
 def solve_1(inp):
+	return solve_internal(inp,[add,mul])
+def solve_internal(inp,ops):
 	answer=0
 	for result,nums in inp:
 		calcs=[nums[0]]
 		for num in nums[1:]:
 			new_calcs=[]
 			for calc in calcs:
-				for op in [add,mul]:
+				for op in ops:
 					new_calc=op(calc,num)
 					if new_calc<=result:
 						new_calcs.append(new_calc)
@@ -27,8 +30,7 @@ def solve_1(inp):
 
 
 def solve_2(inp):
-	answer=0
-	return answer
+	return solve_internal(inp,[add,mul,concat])
 
 def get_input(file_path):
 	with open(file_path) as f:
