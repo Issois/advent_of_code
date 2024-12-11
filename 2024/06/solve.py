@@ -21,6 +21,17 @@ DIREV=np.array([
 	[-1,-1, 0],
 ])
 
+DIREV2=np.array([
+	[-1, 0],
+	[-1, 1],
+	[ 0, 1],
+	[ 1, 1],
+	[ 1, 0],
+	[ 1,-1],
+	[ 0,-1],
+	[-1,-1],
+])
+
 
 def main():
 
@@ -96,16 +107,19 @@ def select_internal(arr,p1,p2):
 
 	return arr[p1[X]:p2[X]:xstep,p1[Y]:p2[Y]:ystep]
 
-def is_in_range(pos,arr):
+def is_in_range(pos,arr,check_empty=True):
 	return (
 		0<=pos[X]<arr.shape[X]
 		and
 		0<=pos[Y]<arr.shape[Y]
 		and
-		arr[tuple(pos[[X,Y]])]==0
+		(arr[tuple(pos[[X,Y]])]==0 or not check_empty)
 	)
 
 def solve_1(inp,start,dire):
+	return solve_1_internal(inp,start,dire)[0]
+
+def solve_1_internal(inp,start,dire):
 	answer=-1
 	pos=start
 	left_the_field=False
@@ -115,10 +129,11 @@ def solve_1(inp,start,dire):
 	while(steps<max_steps):
 		steps+=1
 		inp[tuple(pos)]=1
-		new_pos=pos+DIREV[dire]
+		new_pos=pos+DIREV2[dire]
 
-		if not is_in_range(new_pos,inp):
+		if not is_in_range(new_pos,inp,check_empty=False):
 			left_the_field=True
+			# print("???")
 			break
 
 		if inp[tuple(new_pos)]==2:
@@ -131,11 +146,11 @@ def solve_1(inp,start,dire):
 	else:
 		print("too much steps")
 
-	plt.imshow(inp)
-	plt.show()
+	# plt.imshow(inp)
+	# plt.show()
 
 	# 5242
-	return answer
+	return answer,inp
 
 
 def get_beam(arr,pos,dire):
@@ -327,8 +342,8 @@ def find_loop(graph,next_node,visited,image=None):
 			next_node=graph[next_node]
 			# print(f"move to next node {next_node}")
 
+def solve_2_part_brute_force(arr,start_pos,start_dire):
 
-def solve_2(arr,start_pos,start_dire):
 	start_pos=to_3d(start_pos)
 	answer=0
 
@@ -336,10 +351,13 @@ def solve_2(arr,start_pos,start_dire):
 	# add_next_node(arr,start_pos,start_dire,graph)
 	start_node=tuple(start_pos),start_dire
 
+	positions=set()
+
+
 	for x in range(arr.shape[X]):
 		for y in range(arr.shape[Y]):
 			print(x,y)
-			if (x,y,0)!=start_node[N_POS]:
+			if (x,y,0)!=start_node[N_POS] and arr[x,y]==0:
 				changed_targets={}
 				nodes_added=[]
 				temp_block_pos=np.array((x,y,0))
@@ -365,7 +383,7 @@ def solve_2(arr,start_pos,start_dire):
 						# Find target for new node.
 						add_next_node(arr,new_node_pos,new_node_dire,graph,add_end_node=False)
 						nodes_added.append(new_node)
-				
+
 
 				add_next_node(arr,start_pos,start_dire,graph)
 				visited=set()
@@ -375,18 +393,99 @@ def solve_2(arr,start_pos,start_dire):
 					cur_node=graph[cur_node]
 				if cur_node is not None:
 					answer+=1
-	
+					positions.add(tuple(temp_block_pos))
+
 				# Revert changes in graph.
 				for node_added in nodes_added:
+					# print(f"del {node_added}")
 					del graph[node_added]
 				for node_changed,old_target in changed_targets.items():
 					graph[node_changed]=old_target
-	return answer
+	# 1412 is wrong.
+	return answer,positions
 
 
-				
+def solve_2_full_brute_force(arr,start_pos,start_dire):
+	_,arr1=solve_1_internal(arr.copy(),start_pos,start_dire)
+	start_pos=to_3d(start_pos)
+	start_node=tuple(start_pos),start_dire
 
 
+
+	answer=0
+	positions=set()
+
+	count=0
+
+	for x in range(arr.shape[X]):
+		for y in range(arr.shape[Y]):
+			if (x,y,0)!=start_node[N_POS] and arr1[x,y]==1:
+				count+=1
+				print(x,y)
+				# print("1")
+				arr2=arr.copy()
+				arr2[x,y]=2
+				graph=build_base_graph(arr2)
+				# print("2")
+				add_next_node(arr2,start_pos,start_dire,graph)
+				# start_node=tuple(start_pos),start_dire
+				visited=set()
+				cur_node=start_node
+				# prev_node=cur_node
+				while cur_node is not None and cur_node not in visited:
+					visited.add(cur_node)
+					# prev_node=cur_node
+					cur_node=graph[cur_node]
+				# print(prev_node)
+				if cur_node is not None:
+					answer+=1
+					positions.add((x,y,0))
+				# if count>50:
+				# 	return answer,positions
+	print(f"fbf answer: {answer}")
+	# 1424 is correct.
+	return answer,positions
+
+
+
+
+def solve_2(arr,start_pos,start_dire):
+	answer_fb,pos_fb=solve_2_full_brute_force(arr,start_pos,start_dire)
+	# answer_bf,pos_bf=solve_2_part_brute_force(arr,start_pos,start_dire)
+	# answer_sr,pos_sr=solve_2_search(arr,start_pos,start_dire)
+	print(pos_fb)
+
+	# for pos in pos_bf:
+	# for pos in pos_sr:
+		# if arr[pos[:2]]==2:
+			# print("WRONG! ",pos)
+
+	# plt.imshow(arr)
+	# plt.scatter([p[Y] for p in pos_bf],[p[X] for p in pos_bf],marker="s",c="r")
+	# plt.scatter([p[Y] for p in pos_sr],[p[X] for p in pos_sr],marker="o",c="b")
+	# plt.show()
+
+	# both=pos_bf&pos_sr
+	# only_bf=pos_bf-pos_sr
+	# only_sr=pos_sr-pos_bf
+
+	# print(both)
+	# print()
+	# print()
+	# print(only_bf)
+	# print()
+	# print()
+	# print(only_sr)
+
+	return answer_fb
+
+def solve_2_search(arr,start_pos,start_dire):
+	start_pos=to_3d(start_pos)
+	answer=0
+
+	graph=build_base_graph(arr)
+	add_next_node(arr,start_pos,start_dire,graph)
+	start_node=tuple(start_pos),start_dire
 
 	# node=start_node
 	# while node is not None:
@@ -498,18 +597,19 @@ def solve_2(arr,start_pos,start_dire):
 		# if plen>4:return
 		# return
 	answer=len(block_positions)
-	print("total loops",answer)
+	print(f"search total loops: {answer}")
 	block_positions=set(block_positions)
-	block_positions.remove(start_node[N_POS])
-	print(block_positions)
+	if start_node[N_POS] in block_positions:
+		block_positions.remove(start_node[N_POS])
 	answer=len(block_positions)
+	print(f"search answer: {answer}")
  	# 1526 too high
 	# 1583 even higher
 	# 1564 still too high
 	# 1562 still too high
 	# 1563 still too high
 	# 1497 is too high
-	return answer
+	return answer,block_positions
 
 # LOOPS=[]
 #
