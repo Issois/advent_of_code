@@ -3,43 +3,63 @@ import numpy as np
 import sys
 # import matplotlib.pyplot as plt
 
+def get_section_index_from_index(index,sections):
+	return np.nonzero(index<sections)[0][0]
+
 
 def solve_1(inp):
 	answer=0
-	sizes=inp[::2]
-	spaces=inp[1::2]
-	# print(sizes)
-	# print(spaces)
-	idx_file_start=0
-	idx_inside_start=0
-	idx_file_end=len(sizes)-1
-	idx_inside_end=sizes[idx_file_end]-1
-	idx_space_start=0
-	idx_space_inside_start=0
-	idx_result=0
-	# idx_end=-1
+	total_length=np.sum(inp)
+	print("len:",total_length)
+	# sections=np.insert(np.cumsum(inp),0,0)
+	sections=np.cumsum(inp)
+	# is_space=np.arange(sections.shape[0])%2==1
+	# is_file=np.logical_not(is_space)
+	# print(is_space)
+	# print(sections)
+	# print(sections[is_space])
+	# print()
+	# result=np.zeros((total_length,2),dtype=int)
 
-	in_file=True
 
-	result_index=0
-	while True:
-		if in_file:
-			file_index=idx_file_start
-			idx_inside_start+=1
-			if idx_inside_start>=sizes[idx_file_start]:
-				in_file=False
-				idx_file_start+=1
+	backward_index=total_length-1
+	while (backward_section_index:=get_section_index_from_index(backward_index,sections))%2==1:
+		backward_index-=1
+
+
+	for forward_index in range(total_length):
+		forward_section_index=get_section_index_from_index(forward_index,sections)
+		# print(forward_index,)
+		# continue
+		# if forward_index>backward_index:
+			# print(forward_index,backward_index)
+			# break
+		# while forward_index>=sections[forward_section_index]:
+		# 	forward_section_index+=1
+		# print(forward_section_index)
+		is_space=forward_section_index%2==1
+		if backward_index<forward_index:
+			break
+
+		if is_space:
+			file=backward_section_index//2
+			backward_index-=1
+			while (backward_section_index:=get_section_index_from_index(backward_index,sections))%2==1:
+				backward_index-=1
 		else:
-			file_index=idx_file_end
-			idx_space_inside_start+=1
-			if idx_space_inside_start>=spaces[idx_space_start]:
-				in_file=True
-				idx_space_start+=1
-			pass
+			file=forward_section_index//2
+		answer+=forward_index*file
+		# result[forward_index,:]=(forward_index,file)
+		# print(f"idx {forward_index} * {file}")
 
-		answer+=(file_index*result_index)
-		result_index+=1
+		# index_in_sections=np.nonzero(forward_index<sections)[0][0]-1
+		# print(index_in_sections)
+		# if is
+		# pass
 
+
+	# 6433134381063 is too high.
+	# 6432869891895 is correct.
 	return answer
 
 def solve_2(inp):
