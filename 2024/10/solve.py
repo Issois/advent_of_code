@@ -5,6 +5,9 @@ import sys
 
 
 def solve_1(arr):
+	return solve_internal(arr,unique=True)
+
+def solve_internal(arr,unique):
 	answer=0
 	# print(arr)
 	heads=np.array(np.nonzero(arr==0)).T
@@ -16,9 +19,11 @@ def solve_1(arr):
 			position=positions.pop()
 			current_height=arr[tuple(position)]
 			if current_height==9:
+				if unique:
+					peaks.add(tuple(position))
+				else:
 				# print(head,position)
-				# answer+=1
-				peaks.add(tuple(position))
+					answer+=1
 			else:
 				for dire in DIREV[::2]:
 					new_position=position+dire
@@ -26,7 +31,8 @@ def solve_1(arr):
 						new_height=arr[tuple(new_position)]
 						if new_height-current_height==1:
 							positions.append(new_position)
-		answer+=len(peaks)
+		if unique:
+			answer+=len(peaks)
 
 	# print(heads)
 
@@ -42,9 +48,8 @@ def is_in_range(pos,arr):
 		0<=pos[Y]<arr.shape[Y]
 	)
 
-def solve_2(inp):
-	answer=0
-	return answer
+def solve_2(arr):
+	return solve_internal(arr,unique=False)
 
 def get_input(file_path):
 	with open(file_path) as f:
