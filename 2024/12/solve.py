@@ -11,16 +11,27 @@ def solve_1(garden):
 	# x=
 	while (nonsearched:=np.array(np.nonzero(1-searched)).T).shape[0]>0:
 		pos=nonsearched[0]
-		pos_tup=tuple(pos)
-		searched[pos_tup]=1
-		plant=garden[pos_tup]
+		plant=garden[tuple(pos)]
+		area=0
+		border=0
 
+		check_list=set([tuple(pos)])
+		while len(check_list)>0:
+			pos_tup=check_list.pop()
+			searched[pos_tup]=1
+			area+=1
+			for dire in DIREV[::2]:
+				new_pos=np.array(pos_tup)+dire
+				new_pos_tup=tuple(new_pos)
+				if not is_in_range(new_pos,garden) or garden[new_pos_tup]!=plant:
+					border+=1
+				else:
+					if searched[new_pos_tup]==0:
+						check_list.add(new_pos_tup)
 
-	print(x.shape[0])
+		answer+=area*border
 
-
-
-	# print(searched)
+	# 1546338 is correct.
 	return answer
 
 def solve_2(garden):
