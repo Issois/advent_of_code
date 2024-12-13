@@ -6,6 +6,25 @@ import sys
 
 def solve_1(inp):
 	answer=0
+	
+	blink_count=25
+	stones=inp
+	for _ in range(blink_count):
+		new_stones=[]
+		for stone in stones:
+			if stone==0:
+				new_stones.append(1)
+			elif (stone_len:=len(stone_str:=str(stone)))%2==0:
+				new_stones.append(int(stone_str[:stone_len//2]))
+				new_stones.append(int(stone_str[stone_len//2:]))
+			else:
+				new_stones.append(stone*2024)
+		stones=new_stones
+
+	# 199986 is correct.
+	answer=len(stones)
+
+
 	return answer
 
 def solve_2(inp):
@@ -14,8 +33,9 @@ def solve_2(inp):
 
 def get_input(file_path):
 	with open(file_path) as f:
-		inp=f.read().split("\n")
-	return inp
+		inp=f.read().split(" ")
+	# return list(np.array(inp,dtype=int))
+	return [int(num) for num in inp]
 
 
 def main():
@@ -37,7 +57,7 @@ Z=2
 ROW=0
 COL=1
 
-DIRE=np.array([
+DIREV=np.array([
 	[-1, 0],
 	[-1, 1],
 	[ 0, 1],
