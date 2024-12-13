@@ -57,7 +57,7 @@ Z=2
 ROW=0
 COL=1
 
-DIRE=np.array([
+DIREV=np.array([
 	[-1, 0],
 	[-1, 1],
 	[ 0, 1],
