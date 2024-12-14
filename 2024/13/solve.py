@@ -8,13 +8,18 @@ RGX=re.compile(r'\d+')
 
 def solve_1(machines):
 	answer=0
-	# print(machines)
+	cost=np.array([3,1])
 
 	for machine in machines:
+		mat=machine[:2].T
+		inv=np.linalg.inv(mat)
+		result_f=inv@machine[2].T
+		result=np.round(result_f).astype(int)
+		if np.all(mat@result==machine[2]) and np.all(result_f>0) and np.all(result_f<=100):
+			answer+=np.dot(result,cost)
 
-	av+bw=u
-	[a b]*[v w]T=u
-	[v w]T=[a b]-1*u
+	# 16169 is too low.
+	# 27157 is correct.
 
 	return answer
 
