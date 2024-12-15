@@ -2,6 +2,8 @@
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import math
 
 import re
 RGX=re.compile(r'-?\d+')
@@ -11,14 +13,8 @@ def solve_1(inp):
 	return solve_internal(inp,seconds=100)
 
 def solve_internal(inp,seconds):
-	answer=0
 	robots,area=inp
-	field=np.zeros(area,dtype=int)
-	for robot in robots:
-		final_location=robot[POS]+(seconds*robot[VEL])
-		final_location=final_location%area
-		field[tuple(final_location)]+=1
-
+	field=move_robots(robots,area,seconds)
 	answer=1
 	answer*=np.sum(field[:(area[X]//2)   ,:(area[Y]//2)   ])
 	answer*=np.sum(field[:(area[X]//2)   , (area[Y]//2)+1:])
@@ -27,9 +23,45 @@ def solve_internal(inp,seconds):
 
 	return answer
 
+def move_robots(robots,area,seconds):
+	field=np.zeros(area,dtype=int)
+	for robot in robots:
+		final_location=robot[POS]+(seconds*robot[VEL])
+		final_location=np.floor(final_location)
+		final_location=final_location.astype(int)
+		final_location=final_location%area
+		field[tuple(final_location)]+=1
+	return field
+
 def solve_2(inp):
 	answer=0
 	robots,area=inp
+	max_steps=area[X]*area[Y]
+
+	fig,ax=plt.subplots()
+	artists=[]
+	sums=[]
+	for seconds in range(max_steps+1):
+		if seconds%500==0:
+			print(seconds)
+		field=move_robots(robots,area,seconds)
+		sums.append(np.sum(np.abs(field-field[:,::-1])))
+
+	# print(sums)
+
+	min_sum=1_000_000_000
+	min_idx=None
+	for idx,_sum in enumerate(sums):
+		if _sum<min_sum:
+			min_sum=_sum
+			min_idx=idx
+
+	answer=min_idx
+	# plt.imshow(move_robots(robots,area,answer))
+	# plt.show()
+	# return
+
+	# 8087 is correct.
 	return answer
 
 def get_input(file_path):
