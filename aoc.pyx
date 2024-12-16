@@ -68,6 +68,13 @@ DIREV=np.array([
 	[-1,-1],
 ])
 
+def is_in_range(pos,arr):
+	return (
+		0<=pos[X]<arr.shape[X]
+		and
+		0<=pos[Y]<arr.shape[Y]
+	)
+
 solve=getattr(sys.modules[__name__],"solve_"+RIDDLE_NUMBER)
 main()
 """)
