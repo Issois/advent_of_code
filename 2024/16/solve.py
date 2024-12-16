@@ -3,15 +3,19 @@ import numpy as np
 import sys
 # import matplotlib.pyplot as plt
 
+from pprint import pprint
 
-def solve_1(field,pos_start,pos_end):
 
-	graph=make_graph(field)
+def solve_1(field,pos__start,pos__end):
+
+	graph=make_graph(field,[pos__start,pos__end])
+
+	pprint(graph)
 
 	answer=0
 	return answer
 
-def solve_2(field,pos_start,pos_end):
+def solve_2(field,pos__start,pos__end):
 	answer=0
 	return answer
 
@@ -21,10 +25,10 @@ def get_input(file_path):
 	inp=np.array([list(row) for row in inp])
 	field=np.zeros(inp.shape,dtype=bool)
 	field[inp!="#"]=True
-	pos_start=np.array(np.nonzero(inp=="S"))[:,0]
-	pos_end=np.array(np.nonzero(inp=="E"))[:,0]
-	# print(pos_start)
-	return field,pos_start,pos_end
+	pos__start=np.array(np.nonzero(inp=="S"))[:,0]
+	pos__end=np.array(np.nonzero(inp=="E"))[:,0]
+	# print(pos__start)
+	return field,pos__start,pos__end
 
 def get_free_dires(field,pos):
 	free_dires=[]
@@ -34,37 +38,115 @@ def get_free_dires(field,pos):
 	return free_dires
 
 def make_graph(field,add_poss):
-	pos_start=add_poss[0]
-	node_start=(tuple(pos_start),2)
+	pos__start=add_poss[0]
+	node_start=tuple(pos__start),2
 	add_postups=set([tuple(pos) for pos in add_poss])
 	graph={}
-	nodes_checked=set()
-	nodes_to_check=[node_start]
-	while len(nodes_to_check)>0:
-		node_to_check=nodes_to_check.pop()
-		# node_to_check_postup,node_to_check_dire=node_to_check
-		# find next node in current direction.
-		cost=1
-		pos_path=np.array(node_to_check[POSTUP])+DIREV[node_to_check[DIRE]]
-		search_finshed=False
-		while not search_finshed:
+	nodes__checked=set()
+	nodes__to_check=[node_start]
 
-		# - walk to next tile
-		# - if in add nodes: make new node
-		# - count neigbours
-		# - if 1: discard path
-		# - elif 2: update direction
-		# - else: make new node
+	ncid=0
+
+	while len(nodes__to_check)>0:
+		# print(f"---  {nodes__to_check=}\n")
+		# print(f"---  {len(nodes__to_check)=}\n")
+		ncid+=1
+		node__source=nodes__to_check.pop()
+
+		if node__source in nodes__checked:
+			# print(f"<{ncid:3.0f}|{node__source}> Node duplicate check.")
+			continue
+
+		if node__source not in graph:
+			graph[node__source]=[]
+
+		searched_dires={node[DIRE] for node,_ in graph[node__source]}
+
+		# print(f"<{ncid:3.0f}|{node__source}> {searched_dires=}")
+
+		if node__source[DIRE] not in searched_dires:
+			# find next node in current direction.
+			cost__path=1
+			pos__path=np.array(node__source[POSTUP])+DIREV[node__source[DIRE]]
+			dire__path=node__source[DIRE]
+			search_finshed=False
+			if not field[tuple(pos__path)]:
+				search_finshed=True
+			# - walk to next tile
+			while not search_finshed:
+			# - if in add nodes: make new node
+				if tuple(pos__path) in add_postups:
+					node__target=tuple(pos__path),dire__path
+					add_node(graph,node__source,node__target,cost__path,nodes__to_check)
+					search_finshed=True
+					# print(f"<{ncid:3.0f}|{node__source}> SEARCH: special node: {node__target}")
+				else:
+			# - count neigbours
+					free_dires=get_free_dires(field,pos__path)
+					free_dires_count=len(free_dires)
+			# - if 1: discard path
+					if free_dires_count==1:
+						# print(f"<{ncid:3.0f}|{node__source}> SEARCH: discard @ {pos__path}")
+						search_finshed=True
+			# - elif 2: update direction
+					elif free_dires_count==2:
+						# print(f"<{ncid:3.0f}|{node__source}> SEARCH: move @ {pos__path}, dire: {dire__path} [{free_dires}]")
+						free_dires=set(free_dires)
+						free_dires.remove((dire__path+4)%8)
+						dire__path_new=free_dires.pop()
+						if dire__path_new==dire__path:
+							cost__path+=1
+							pos__path=pos__path+DIREV[dire__path]
+						else:
+							cost__path+=1001
+							dire__path=dire__path_new
+							pos__path=pos__path+DIREV[dire__path]
+			# - else: make new node
+					else:
+						node__target=tuple(pos__path),dire__path
+						# print(f"<{ncid:3.0f}|{node__source}> SEARCH: new node (trg)     : {node__target}")
+						add_node(graph,node__source,node__target,cost__path,nodes__to_check)
+						search_finshed=True
+
+		for dire_offset in [2,6]:
+			dire__search=(node__source[DIRE]+dire_offset)%8
+			if dire__search not in searched_dires and field[tuple(np.array(node__source[POSTUP])+DIREV[dire__search])]:
+				node__target=node__source[POSTUP],dire__search
+				graph[node__source].append((node__target,1000))
+				if node__target not in graph:
+					graph[node__target]=[]
+				graph[node__target].append((node__source,1000))
+				nodes__to_check.append(node__target)
+				# print(f"<{ncid:3.0f}|{node__source}> TURN: new node: {node__target}")
+
+		nodes__checked.add(node__source)
+		# print(f"<{ncid:3.0f}|{node__source}> CHECKED!\n")
+
+	return graph
 
 
 
 
 
-	pass
+def add_node(graph,node__source,node__target,cost__path,nodes__to_check):
+	graph[node__source].append((node__target,cost__path))
+	node__source_reverse=node__source[POSTUP],(node__source[DIRE]+4)%8
+	node__target_reverse=node__target[POSTUP],(node__target[DIRE]+4)%8
+	if node__target_reverse not in graph:
+		graph[node__target_reverse]=[]
+	# print(f"<   |{node__source}> SEARCH: new node (trg rev) : {node__target_reverse}")
+	# print(f"<   |{node__source}> SEARCH: new node (src rev) : {node__source_reverse}")
+	graph[node__target_reverse].append((node__source_reverse,cost__path))
+	nodes__to_check.extend([
+		node__target,
+		node__source_reverse,
+		node__target_reverse
+	])
+
 
 def main():
 	inp=get_input(FILE_PATH)
-	answer=solve(inp)
+	answer=solve(*inp)
 	print(f"ANSWER: {answer}")
 
 
@@ -83,6 +165,9 @@ FILE_PATH=sys.argv[2]
 
 POSTUP=0
 DIRE=1
+
+NODE=0
+COST=1
 
 X=0
 Y=1
