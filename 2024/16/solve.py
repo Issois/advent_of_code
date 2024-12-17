@@ -1,20 +1,81 @@
 
 import numpy as np
 import sys
-# import matplotlib.pyplot as plt
+
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 from pprint import pprint
 
+
+COST_STEP=1
+# COST_STEP=1000
+COST_TURN=1000
+# COST_TURN=1
 
 def solve_1(field,pos__start,pos__end):
 
 	graph=make_graph(field,[pos__start,pos__end])
 
-	# pprint(graph)
-	
+	node__start=tuple(pos__start),2
+	postup__end=tuple(pos__end)
 
-	answer=0
+	heads=[(node__start,0)]
+	analyzed=set([node__start])
+	min_cost_at_node={node__start:0}
+
+	animate=True
+	if animate:
+		fig,ax=plt.subplots()
+		artists=[]
+
+	end_found=False
+	while not end_found:
+
+		head__cur=heads.pop()
+
+		if animate:
+			img=field.astype(int)
+			for node in analyzed:
+				img[node[POSTUP]]=2
+			img[head__cur[NODE][POSTUP]]=3
+			artists.append([plt.imshow(img,animated=True)])
+
+		if head__cur[NODE][POSTUP]==postup__end:
+			answer=head__cur[COST]
+			end_found=True
+		else:
+			for edge__next in graph[head__cur[NODE]].values():
+				node__next=edge__next[NODE]
+				cost__next=head__cur[COST]+edge__next[COST]
+				if node__next not in analyzed or cost__next<min_cost_at_node[node__next]:
+					analyzed.add(node__next)
+					min_cost_at_node[node__next]=cost__next
+					insert_sorted(heads,(node__next,cost__next))
+
+	if animate:
+		ani=animation.ArtistAnimation(fig=fig,artists=artists,interval=60,blit=True)
+		plt.show()
+	# 95468 is too high.
+	# 91468 is too high.
+	# 91464 is correct.
 	return answer
+
+def insert_sorted(prio_queue,head):
+	cost=head[COST]
+
+	start=0
+	end=len(prio_queue)
+	# print(start,end)
+	while end-start>0:
+		index__search=(start+end)//2
+
+		if cost>prio_queue[index__search][COST]:
+			end=index__search
+		else:
+			start=index__search+1
+		# print(start,end,index__search)
+	prio_queue.insert(start,head)
 
 def solve_2(field,pos__start,pos__end):
 	answer=0
@@ -70,7 +131,7 @@ def make_graph(field,add_poss):
 
 		if FORWARD not in graph[node__source]:
 			# find next node in current direction.
-			cost__path=1
+			cost__path=COST_STEP
 			pos__path=np.array(node__source[POSTUP])+DIREV[node__source[DIRE]]
 			dire__path=node__source[DIRE]
 			search_finshed=False
@@ -102,10 +163,10 @@ def make_graph(field,add_poss):
 						free_dires.remove((dire__path+4)%8)
 						dire__path_new=free_dires.pop()
 						if dire__path_new==dire__path:
-							cost__path+=1
+							cost__path+=COST_STEP
 							pos__path=pos__path+DIREV[dire__path]
 						else:
-							cost__path+=1001
+							cost__path+=COST_STEP+COST_TURN
 							dire__path=dire__path_new
 							pos__path=pos__path+DIREV[dire__path]
 			# - else: make new node
@@ -121,10 +182,10 @@ def make_graph(field,add_poss):
 			dire__search=(node__source[DIRE]+dire_offset)%8
 			if turn not in graph[node__source] and field[tuple(np.array(node__source[POSTUP])+DIREV[dire__search])]:
 				node__target=node__source[POSTUP],dire__search
-				graph[node__source][turn]=node__target,1000
+				graph[node__source][turn]=node__target,COST_TURN
 				if node__target not in graph:
 					graph[node__target]={}
-				graph[node__target][turn]=node__source,1000
+				graph[node__target][2-turn]=node__source,COST_TURN
 				nodes__to_check.append(node__target)
 				if print_building:
 					print(f"<{ncid:3.0f}|{node__source}> TURN: new node: {node__target}")
