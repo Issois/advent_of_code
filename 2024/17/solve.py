@@ -14,6 +14,11 @@ def solve_1(inp):
 
 def solve_2(inp):
 	registers,program=inp
+
+	for index_instr in range(0,len(program),2):
+		print(instr_from_opcode[program[index_instr]].__name__,program[index_instr+1])
+
+
 	answer=0
 	return answer
 
@@ -26,9 +31,9 @@ def execute_program(registers,program):
 
 	while state["instruction_pointer"]<len(program):
 		state["advance_instruction_pointer"]=True
-		op_code=program[state["instruction_pointer"]]
+		opcode=program[state["instruction_pointer"]]
 		operand=program[state["instruction_pointer"]+1]
-		instruction=instr_from_opcode[op_code]
+		instruction=instr_from_opcode[opcode]
 		print(instruction.__name__,operand,registers,state)
 		instruction(operand,registers,state)
 		if state["advance_instruction_pointer"]:
