@@ -9,9 +9,97 @@ from pprint import pprint
 
 
 COST_STEP=1
-# COST_STEP=1000
 COST_TURN=1000
-# COST_TURN=1
+
+# CONDITION: Works only for COST_TURN>>COST_STEP such that for any path between two nodes: step_count=cost%COST_TURN.
+def solve_2(field,pos__start,pos__end):
+
+
+	graph=make_graph(field,[pos__start,pos__end])
+
+	node__start=tuple(pos__start),2
+	postup__end=tuple(pos__end)
+
+
+	heads=[(node__start,0,"0")]
+	analyzed=set([node__start])
+	min_cost_at_node={node__start:0}
+	path_from_head={heads[0]:[heads[0]]}
+	# alternate_path_heads={}
+	min_cost=None
+
+	next_head_id=1
+
+	animate=True
+	animate=False
+	if animate:
+		fig,ax=plt.subplots()
+		artists=[]
+
+	end_found=False
+	while len(heads)>0:
+	# while not end_found:
+		# print("     ",heads[-3:])
+
+		head__cur=heads.pop()
+
+		if animate:
+			img=field.astype(int)
+			for node in analyzed:
+				img[node[POSTUP]]=2
+			img[head__cur[NODE][POSTUP]]=3
+			artists.append([plt.imshow(img,animated=True)])
+
+		if head__cur[NODE][POSTUP]==postup__end:
+			if min_cost is None:
+				min_cost=head__cur[COST]
+		else:
+			for edge__next in graph[head__cur[NODE]].values():
+				node__next=edge__next[NODE]
+				cost__next=head__cur[COST]+edge__next[COST]
+				head__next=node__next,cost__next,str(next_head_id)
+				next_head_id+=1
+				if node__next not in analyzed or cost__next<=min_cost_at_node[node__next]:
+					analyzed.add(node__next)
+					min_cost_at_node[node__next]=cost__next
+					path_from_head[head__next]=path_from_head[head__cur]+[head__next]
+					insert_sorted(heads,head__next)
+
+	if animate:
+		ani=animation.ArtistAnimation(fig=fig,artists=artists,interval=60,blit=True)
+		plt.show()
+
+	edges__counted=set()
+	postups__visited=set([postup__end])
+
+	answer=0
+
+	print(f"{min_cost=}")
+	for head__end,heads__path in path_from_head.items():
+		if head__end[NODE][POSTUP]==tuple(pos__end) and head__end[COST]==min_cost:
+			# print("shortest path: ",heads__path)
+
+			for index__path in range(len(heads__path)-1):
+				pos__a=heads__path[index__path  ][NODE][POSTUP]
+				pos__b=heads__path[index__path+1][NODE][POSTUP]
+				postups__visited.add(pos__a)
+				postups__visited.add(pos__b)
+				if pos__a!=pos__b:
+					if pos__a<pos__b:
+						edge=pos__a,pos__b
+					else:
+						edge=pos__b,pos__a
+					if edge not in edges__counted:
+						edges__counted.add(edge)
+						# count only tiles between nodes. add nodes separately.
+						answer+=(graph[heads__path[index__path][NODE]][FORWARD][COST]%COST_TURN)-1
+
+	answer+=len(postups__visited)
+
+	# 494 is correct.
+
+	return answer
+
 
 def solve_1(field,pos__start,pos__end):
 
@@ -76,10 +164,6 @@ def insert_sorted(prio_queue,head):
 			start=index__search+1
 		# print(start,end,index__search)
 	prio_queue.insert(start,head)
-
-def solve_2(field,pos__start,pos__end):
-	answer=0
-	return answer
 
 def get_input(file_path):
 	with open(file_path) as f:
@@ -251,6 +335,7 @@ DIRE=1
 
 NODE=0
 COST=1
+HID=2
 
 X=0
 Y=1
